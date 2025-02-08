@@ -47,7 +47,7 @@ const App = () => {
               }
             >
               <Route index element={<UserProfile />} />
-              <Route path="applications" element={<LoanApplication />} />
+              <Route path="apply" element={<LoanApplication />} />
               <Route path="repayments" element={<LoanRepayment />} />
               <Route path="transactions" element={<TransactionHistory />} />
               <Route path="dashboard" element={<UserDashboard />} />

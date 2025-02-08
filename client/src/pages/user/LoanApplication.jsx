@@ -1,123 +1,137 @@
-// src/pages/user/LoanApplication.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  CreditCard, Briefcase, Building, AlertCircle,
-  ChevronRight, ChevronLeft
+  CreditCard, Briefcase, Building, 
+  ChevronRight, ChevronLeft, 
 } from 'lucide-react';
-import EMICalculator from '../../components/forms/EMICalculator';
-import DocumentUpload from '../../components/forms/DocumentUpload';
 
 const LoanApplication = () => {
   const [step, setStep] = useState(1);
+  const [predictionData, setPredictionData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
   const [formData, setFormData] = useState({
-    loanType: '',
-    loanAmount: '',
-    duration: '',
-    purpose: '',
-    employment: {
-      type: '',
-      company: '',
-      salary: '',
-      experience: ''
-    },
-    documents: []
+    age: '',
+    income: '',
+    ownership: 'RENT',
+    employment_len: '',
+    loan_intent: 'PERSONAL',
+    loan_amnt: '',
+    loan_int_rate: '',
+    loan_percent_income: '',
+    cred_hist_len: ''
   });
 
-  const loanTypes = [
-    { 
-      id: 'personal', 
-      title: 'Personal Loan', 
-      rate: '10.5%', 
-      maxAmount: '₹15,00,000',
-      icon: CreditCard,
-      description: 'For personal expenses, travel, or emergencies'
-    },
-    { 
-      id: 'business', 
-      title: 'Business Loan', 
-      rate: '12%', 
-      maxAmount: '₹50,00,000',
-      icon: Briefcase,
-      description: 'For business expansion or working capital'
-    },
-    { 
-      id: 'education', 
-      title: 'Education Loan', 
-      rate: '8.5%', 
-      maxAmount: '₹25,00,000',
-      icon: Building,
-      description: 'For higher education and skill development'
+  const calculateLoanPercentIncome = (loanAmount, income) => {
+    return ((parseFloat(loanAmount) / parseFloat(income)) * 100).toFixed(2);
+  };
+
+  const handlePrediction = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('https://deploy-api-17es.onrender.com/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          age: parseInt(formData.age),
+          income: parseInt(formData.income),
+          ownership: formData.ownership,
+          employment_len: parseFloat(formData.employment_len),
+          loan_intent: formData.loan_intent,
+          loan_amnt: parseInt(formData.loan_amnt),
+          loan_int_rate: parseFloat(formData.loan_int_rate),
+          loan_percent_income: parseFloat(formData.loan_percent_income),
+          cred_hist_len: parseInt(formData.cred_hist_len)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get prediction');
+      }
+
+      const data = await response.json();
+      setPredictionData(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
-  const requiredDocuments = [
-    {
-      id: 'identity',
-      name: 'Identity Proof',
-      description: 'PAN Card or Aadhar Card'
-    },
-    {
-      id: 'address',
-      name: 'Address Proof',
-      description: 'Utility bill or Passport'
-    },
-    {
-      id: 'income',
-      name: 'Income Proof',
-      description: 'Last 3 months salary slips'
-    },
-    {
-      id: 'bank',
-      name: 'Bank Statements',
-      description: 'Last 6 months bank statements'
+  const handleNext = async () => {
+    if (step === 2) {
+      const loanPercentIncome = calculateLoanPercentIncome(
+        formData.loan_amnt, 
+        formData.income
+      );
+      setFormData(prev => ({
+        ...prev,
+        loan_percent_income: loanPercentIncome
+      }));
+      await handlePrediction();
     }
-  ];
-
-  const steps = [
-    { number: 1, title: 'Loan Details' },
-    { number: 2, title: 'Personal Info' },
-    { number: 3, title: 'Documents' },
-    { number: 4, title: 'Review' }
-  ];
-
-  const handleNext = () => {
+    
     if (step < 4) setStep(step + 1);
     else {
-      // Handle form submission
       console.log('Form submitted:', formData);
     }
   };
 
-  const handlePrevious = () => {
-    if (step > 1) setStep(step - 1);
+  const PredictionResult = ({ predictionData, isLoading, error }) => {
+    if (isLoading) return <div className="text-gray-600">Calculating eligibility...</div>;
+    if (error) return <div className="text-red-600">Error: {error}</div>;
+    if (!predictionData) return null;
+
+    const eligibilityProb = parseFloat(predictionData['prob of eligible']);
+    const isEligible = eligibilityProb > 0.7;
+
+    return (
+      <div className={`p-6 rounded-lg ${isEligible ? 'bg-green-50' : 'bg-red-50'}`}>
+        <h4 className="text-lg font-semibold mb-4">
+          {isEligible ? 'Congratulations!' : 'We apologize,'}
+        </h4>
+        <p className={`text-lg ${isEligible ? 'text-green-700' : 'text-red-700'}`}>
+          {isEligible 
+            ? 'You are eligible for this loan!' 
+            : 'You are not eligible for this loan at this time.'}
+        </p>
+        <p className="mt-2 text-gray-600">
+          Eligibility Score: {(eligibilityProb * 100).toFixed(1)}%
+        </p>
+      </div>
+    );
   };
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Progress Steps */}
-      <div className="mb-12">
-        <div className="flex justify-between relative">
-          {steps.map((s, i) => (
-            <div key={s.number} className="flex-1 relative">
-              <motion.div 
-                className={`flex flex-col items-center ${i !== steps.length - 1 ? 'relative' : ''}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          {[1, 2, 3, 4].map((stepNumber) => (
+            <div
+              key={stepNumber}
+              className={`flex items-center ${
+                stepNumber === 4 ? '' : 'flex-1'
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  step >= stepNumber
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 
-                  ${step > s.number ? 'bg-green-600' : 
-                    step === s.number ? 'bg-blue-600' : 'bg-gray-200'} 
-                  text-white font-medium`}
-                >
-                  {s.number}
-                </div>
-                <div className="text-sm font-medium text-gray-900">{s.title}</div>
-              </motion.div>
-              {i !== steps.length - 1 && (
-                <div className={`absolute top-5 left-1/2 w-full h-0.5 
-                  ${step > s.number ? 'bg-green-600' : 'bg-gray-200'}`} 
+                {stepNumber}
+              </div>
+              {stepNumber !== 4 && (
+                <div
+                  className={`h-1 flex-1 mx-2 ${
+                    step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
                 />
               )}
             </div>
@@ -125,7 +139,6 @@ const LoanApplication = () => {
         </div>
       </div>
 
-      {/* Form Steps */}
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
@@ -136,203 +149,221 @@ const LoanApplication = () => {
         >
           {step === 1 && (
             <div className="space-y-8">
-              {/* Loan Types */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {loanTypes.map(type => (
-                  <motion.div
-                    key={type.id}
-                    whileHover={{ scale: 1.02 }}
-                    className={`border-2 rounded-xl p-6 cursor-pointer transition-colors ${
-                      formData.loanType === type.id 
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-200'
-                    }`}
-                    onClick={() => setFormData({ ...formData, loanType: type.id })}
-                  >
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className={`p-2 rounded-lg ${
-                        formData.loanType === type.id 
-                          ? 'bg-blue-200'
-                          : 'bg-gray-100'
-                      }`}>
-                        <type.icon className={`h-6 w-6 ${
-                          formData.loanType === type.id 
-                            ? 'text-blue-600'
-                            :'text-gray-600'
-                        }`} />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">{type.title}</h3>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-4">{type.description}</p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Interest Rate</span>
-                        <span className="text-gray-900 font-medium">{type.rate}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Max Amount</span>
-                        <span className="text-gray-900 font-medium">{type.maxAmount}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Loan Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.loan_amnt}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      loan_amnt: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter loan amount"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Interest Rate
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.loan_int_rate}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      loan_int_rate: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter interest rate"
+                  />
+                </div>
               </div>
-
-              {/* Loan Details */}
-              {formData.loanType && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Loan Amount
-                      </label>
-                      <div className="relative rounded-lg">
-                        <input
-                          type="text"
-                          value={formData.loanAmount}
-                          onChange={(e) => setFormData({ ...formData, loanAmount: e.target.value })}
-                          className="w-full pl-8 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="Enter amount"
-                        />
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500">₹</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Loan Duration
-                      </label>
-                      <select
-                        value={formData.duration}
-                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                        className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select duration</option>
-                        <option value="12">12 months</option>
-                        <option value="24">24 months</option>
-                        <option value="36">36 months</option>
-                        <option value="48">48 months</option>
-                        <option value="60">60 months</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* EMI Calculator */}
-                  {formData.loanAmount && formData.duration && (
-                    <EMICalculator
-                      loanAmount={formData.loanAmount}
-                      duration={formData.duration}
-                      interestRate={parseFloat(loanTypes.find(t => t.id === formData.loanType).rate)}
-                    />
-                  )}
-                </motion.div>
-              )}
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Employment Details</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Personal Details</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employment Type
+                    Age
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      age: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter your age"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Annual Income
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.income}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      income: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter annual income"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Employment Length (years)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.employment_len}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      employment_len: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Years of employment"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Credit History Length (years)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.cred_hist_len}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      cred_hist_len: e.target.value 
+                    })}
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Years of credit history"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Home Ownership
                   </label>
                   <select
-                    value={formData.employment.type}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      employment: { ...formData.employment, type: e.target.value }
+                    value={formData.ownership}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      ownership: e.target.value 
                     })}
-                    className="w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="">Select type</option>
-                    <option value="salaried">Salaried</option>
-                    <option value="self-employed">Self Employed</option>
-                    <option value="business">Business Owner</option>
+                    <option value="RENT">Rent</option>
+                    <option value="OWN">Own</option>
+                    <option value="MORTGAGE">Mortgage</option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Name
+                    Loan Intent
                   </label>
-                  <input
-                    type="text"
-                    value={formData.employment.company}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      employment: { ...formData.employment, company: e.target.value }
+                  <select
+                    value={formData.loan_intent}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      loan_intent: e.target.value 
                     })}
                     className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter company name"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Monthly Income
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.employment.salary}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      employment: { ...formData.employment, salary: e.target.value }
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter monthly income"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Work Experience
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.employment.experience}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      employment: { ...formData.employment, experience: e.target.value }
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Years of experience"
-                  />
+                  >
+                    <option value="PERSONAL">Personal</option>
+                    <option value="EDUCATION">Education</option>
+                    <option value="MEDICAL">Medical</option>
+                    <option value="VENTURE">Venture</option>
+                    <option value="HOME_IMPROVEMENT">Home Improvement</option>
+                    <option value="DEBT_CONSOLIDATION">Debt Consolidation</option>
+                  </select>
                 </div>
               </div>
             </div>
           )}
 
-          {step === 3 && (
-            <DocumentUpload 
-              requiredDocs={requiredDocuments}
-              onUpload={(doc) => setFormData({
-                ...formData,
-                documents: [...formData.documents, doc]
-              })}
-            />
+          {step === 3 && predictionData && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Eligibility Results</h3>
+              <PredictionResult 
+                predictionData={predictionData}
+                isLoading={isLoading}
+                error={error}
+              />
+            </div>
           )}
 
           {step === 4 && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900">Review Application</h3>
-              {/* Add review summary here */}
+              
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Loan Details</h4>
+                    <div className="mt-2 space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">Amount:</span> ₹{formData.loan_amnt}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Interest Rate:</span> {formData.loan_int_rate}%
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Purpose:</span> {formData.loan_intent}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500">Personal Details</h4>
+                    <div className="mt-2 space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">Age:</span> {formData.age}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Income:</span> ₹{formData.income}
+                      </p>
+                      <p className="text-sm">
+                        <span className="font-medium">Employment Length:</span> {formData.employment_len} years
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {predictionData && (
+                  <div className="mt-6">
+                    <PredictionResult 
+                      predictionData={predictionData}
+                      isLoading={false}
+                      error={null}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Navigation Buttons */}
           <div className="mt-8 flex justify-between">
             {step > 1 && (
               <button
-                onClick={handlePrevious}
+                onClick={() => setStep(step - 1)}
                 className="flex items-center px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
               >
                 <ChevronLeft className="h-5 w-5 mr-2" />
@@ -341,10 +372,24 @@ const LoanApplication = () => {
             )}
             <button
               onClick={handleNext}
-              className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 ml-auto"
+              disabled={isLoading}
+              className={`flex items-center px-6 py-3 rounded-lg ml-auto ${
+                isLoading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } text-white`}
             >
-              {step === 4 ? 'Submit Application' : 'Continue'}
-              <ChevronRight className="h-5 w-5 ml-2" />
+              {isLoading ? (
+                <>
+                  <span className="animate-spin mr-2">⌛</span>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {step === 4 ? 'Submit Application' : 'Continue'}
+                  <ChevronRight className="h-5 w-5 ml-2" />
+                </>
+              )}
             </button>
           </div>
         </motion.div>
