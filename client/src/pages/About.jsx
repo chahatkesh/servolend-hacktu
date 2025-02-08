@@ -65,127 +65,173 @@ const About = () => {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <>
     <Navbar />
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-white overflow-hidden">
+      <section className="relative py-24 bg-gradient-to-br from-blue-600 to-blue-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(30deg,rgba(255,255,255,0.1)_0%,rgba(255,255,255,0.1)_100%)] bg-[length:5px_5px]" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <motion.div 
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
           <div className="text-center">
             <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl font-bold mb-6"
+              variants={itemVariants}
+              className="text-5xl md:text-6xl font-bold mb-8 leading-tight"
             >
               Transforming Loan Origination
               <br />
-              for the Digital Age
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
+                for the Digital Age
+              </span>
             </motion.h1>
             <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-xl text-blue-100 max-w-3xl mx-auto"
+              variants={itemVariants}
+              className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto leading-relaxed"
             >
               ServoLend is revolutionizing the lending industry with AI-powered solutions
               that make loan processing faster, smarter, and more secure.
             </motion.p>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16">
+      <section className="py-20 -mt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white p-6 rounded-xl shadow-sm text-center"
+                variants={itemVariants}
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="h-6 w-6 text-blue-600" />
+                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-6">
+                  <stat.icon className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</h3>
-                <p className="text-gray-600">{stat.label}</p>
+                <h3 className="text-4xl font-bold text-gray-900 mb-3">{stat.value}</h3>
+                <p className="text-gray-600 text-lg">{stat.label}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose ServoLend</h2>
-            <p className="text-xl text-gray-600">Experience the future of lending with our comprehensive platform</p>
-          </div>
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">Why Choose ServoLend</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Experience the future of lending with our comprehensive platform</p>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 p-6 rounded-xl"
+                variants={itemVariants}
+                className="bg-gray-50 p-8 rounded-2xl hover:bg-blue-50 transition-colors duration-300"
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-blue-600" />
+                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                  <feature.icon className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{feature.title}</h3>
+                <p className="text-gray-600 text-lg leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
             <p className="text-xl text-gray-600">Find answers to common questions about our platform</p>
-          </div>
+          </motion.div>
 
-          <div className="space-y-4">
+          <motion.div 
+            className="space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl shadow-sm overflow-hidden"
+                variants={itemVariants}
+                className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
               >
                 <button
                   onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50"
+                  className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <span className="font-medium text-gray-900">{faq.question}</span>
+                  <span className="font-semibold text-xl text-gray-900">{faq.question}</span>
                   <ChevronDown
-                    className={`h-5 w-5 text-gray-500 transition-transform ${
+                    className={`h-6 w-6 text-blue-600 transition-transform duration-200 ${
                       expandedFaq === index ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
-                {expandedFaq === index && (
-                  <div className="px-6 pb-4">
-                    <p className="text-gray-600">{faq.answer}</p>
+                <motion.div 
+                  initial={false}
+                  animate={{
+                    height: expandedFaq === index ? 'auto' : 0,
+                    opacity: expandedFaq === index ? 1 : 0
+                  }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-8 pb-6">
+                    <p className="text-gray-600 text-lg leading-relaxed">{faq.answer}</p>
                   </div>
-                )}
+                </motion.div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>
