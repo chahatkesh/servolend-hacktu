@@ -43,11 +43,25 @@ class MyDrawer extends StatelessWidget {
             },
           ),
           Spacer(),
+          // ListTile(
+          //   leading: Icon(Icons.logout),
+          //   title: Text('Logout'),
+          //   onTap: () {
+          //     // logoutNow();
+          //     Navigator.pushAndRemoveUntil(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => GoogleSignInScreen()),
+          //       (Route<dynamic> route) => false,
+          //     );
+          //     // Implement your logout functionality here
+          //   },
+          // ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Logout'),
-            onTap: () {
-              logoutNow();
+            onTap: () async {
+              await logoutNow();
+              // await Future.delayed(Duration(seconds: 1));
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => GoogleSignInScreen()),
