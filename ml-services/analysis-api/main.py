@@ -31,7 +31,13 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=[
+        "http://localhost:5173",
+        "https://servolend-ai.onrender.com",
+        "https://servolend-server.onrender.com",
+        "http://localhost:3000",
+        "https://servolend-analysis.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
