@@ -54,4 +54,64 @@ export const api = {
     });
     return handleResponse(response);
   },
+  // Upload document
+  uploadDocument: async (applicationId, documentType, file) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('documentType', documentType);
+
+    const response = await fetch(`${BASE_URL}/loan/${applicationId}/documents`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    return handleResponse(response);
+  },
+
+  // Get application documents
+  getApplicationDocuments: async (applicationId) => {
+    const response = await fetch(`${BASE_URL}/loan/${applicationId}/documents`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return handleResponse(response);
+  },
+
+  // Verify document (admin only)
+  verifyDocument: async (applicationId, documentId, status) => {
+    const response = await fetch(`${BASE_URL}/loan/${applicationId}/documents/${documentId}/verify`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    return handleResponse(response);
+  },
+
+  // Get document verification status
+  getVerificationStatus: async (applicationId) => {
+    const response = await fetch(`${BASE_URL}/loan/${applicationId}/status`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return handleResponse(response);
+  },
+  uploadFile: async (endpoint, file, documentType) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+    return handleResponse(response);
+  }
 };

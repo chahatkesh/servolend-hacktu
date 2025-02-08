@@ -62,7 +62,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.updateDocument = async (req, res) => {
   try {
-    const { documentName, status } = req.body;
+    const { documentName, status, rejectionReason } = req.body;
 
     const user = await User.findById(req.user.userId);
     if (!user) {
@@ -73,10 +73,14 @@ exports.updateDocument = async (req, res) => {
     let docIndex = user.documents.findIndex(d => d.name === documentName);
     if (docIndex !== -1) {
       user.documents[docIndex].status = status;
+      if (rejectionReason) {
+        user.documents[docIndex].rejectionReason = rejectionReason;
+      }
     } else {
       user.documents.push({
         name: documentName,
         status,
+        rejectionReason,
         uploadDate: new Date()
       });
     }
@@ -105,27 +109,73 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ error: 'Document type is required' });
     }
 
+    // Create uploads directory if it doesn't exist
+    const uploadDir = 'uploads/documents';
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    // Generate unique filename
+    const fileExt = path.extname(req.file.originalname);
+    const uniqueFilename = `${documentType}-${Date.now()}${fileExt}`;
+    const filePath = path.join(uploadDir, uniqueFilename);
+
+    // Move file to permanent location
+    await fs.rename(req.file.path, filePath);
+
     // Update or add document record
     let docIndex = user.documents.findIndex(d => d.name === documentType);
+    const docData = {
+      name: documentType,
+      status: 'PENDING',
+      uploadDate: new Date(),
+      filePath: filePath,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      size: req.file.size
+    };
+
     if (docIndex !== -1) {
-      user.documents[docIndex].status = 'pending';
-      user.documents[docIndex].uploadDate = new Date();
+      // Delete old file if it exists
+      if (user.documents[docIndex].filePath) {
+        await fs.unlink(user.documents[docIndex].filePath).catch(console.error);
+      }
+      user.documents[docIndex] = docData;
     } else {
-      user.documents.push({
-        name: documentType,
-        status: 'pending',
-        uploadDate: new Date()
-      });
+      user.documents.push(docData);
     }
 
     await user.save();
-    res.json(user);
+    res.json({ 
+      message: 'Document uploaded successfully',
+      document: docData
+    });
   } catch (error) {
     console.error('Document upload error:', error);
     // Clean up uploaded file if there was an error
     if (req.file) {
       await fs.unlink(req.file.path).catch(console.error);
     }
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getDocument = async (req, res) => {
+  try {
+    const { documentType } = req.params;
+    const user = await User.findById(req.user.userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const document = user.documents.find(d => d.name === documentType);
+    if (!document || !document.filePath) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Stream the file
+    res.sendFile(document.filePath, { root: '.' });
+  } catch (error) {
+    console.error('Get document error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -180,7 +230,7 @@ exports.deleteProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Delete any uploaded documents
+    // Delete all uploaded documents
     for (const doc of user.documents) {
       if (doc.filePath) {
         await fs.unlink(doc.filePath).catch(console.error);
