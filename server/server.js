@@ -38,10 +38,10 @@ app.use(cookieParser());
 
 // CORS configuration
 const allowedOrigins = [
-  'http://localhost:5173', 
-  'http://localhost:5174', 
-  'http://localhost:3000', 
-  'https://servolend-ai.onrender.com', 
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://servolend-ai.onrender.com',
   'https://servolend-server.onrender.com'
 ];
 
@@ -97,14 +97,14 @@ app.use((err, req, res, next) => {
       details: 'Maximum file size is 10MB'
     });
   }
-  
+
   if (err.code === 'LIMIT_FILE_TYPE') {
     return res.status(400).json({
       error: 'Invalid file type',
       details: 'Only PDF, JPG, and PNG files are allowed'
     });
   }
-  
+
   next(err);
 });
 
@@ -123,8 +123,8 @@ app.use((err, req, res, next) => {
   }
 
   // Send error response
-  res.status(err.status || 500).json({ 
-    error: 'Something went wrong!', 
+  res.status(err.status || 500).json({
+    error: 'Something went wrong!',
     details: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });

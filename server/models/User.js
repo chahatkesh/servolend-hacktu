@@ -69,8 +69,8 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['pending', 'verified', 'rejected', 'required'],
-      default: 'pending'
+      enum: ['PENDING', 'VERIFIED', 'REJECTED', 'REQUIRED'],
+      default: 'PENDING'
     },
     uploadDate: {
       type: Date,
@@ -79,7 +79,8 @@ const userSchema = new mongoose.Schema({
     filePath: String,
     originalName: String,
     mimeType: String,
-    size: Number
+    size: Number,
+    rejectionReason: String
   }],
 
   // New loan application fields

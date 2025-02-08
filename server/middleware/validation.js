@@ -111,20 +111,13 @@ exports.validateProfileUpdate = (req, res, next) => {
 
 exports.validateDocumentUpdate = (req, res, next) => {
   const { documentName, status } = req.body;
-  const errors = {};
 
   if (!documentName) {
-    errors.documentName = 'Document name is required';
+    return res.status(400).json({ error: 'Document name is required' });
   }
 
-  if (!status) {
-    errors.status = 'Status is required';
-  } else if (!['pending', 'verified', 'rejected', 'required'].includes(status)) {
-    errors.status = 'Invalid status value';
-  }
-
-  if (Object.keys(errors).length > 0) {
-    return res.status(400).json({ errors });
+  if (status && !['PENDING', 'VERIFIED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid document status' });
   }
 
   next();

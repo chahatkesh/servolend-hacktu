@@ -1,4 +1,3 @@
-// src/pages/user/DocumentVerification.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -104,14 +103,10 @@ const DocumentVerification = () => {
       setIsLoading(true);
       setError(null);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('documentType', docType);
-
-      await api.post('/api/user/documents/upload', formData);
+      await api.uploadDocument(docType, file);
 
       setSuccessMessage('Document uploaded successfully');
-      await loadDocuments();
+      await loadDocuments(); // Refresh the documents list
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -226,6 +221,7 @@ const DocumentVerification = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {requiredDocuments.map((doc) => {
           const status = getDocumentStatus(doc.type);
+          const isPending = status === 'PENDING';
 
           return (
             <motion.div
@@ -265,17 +261,30 @@ const DocumentVerification = () => {
                   </div>
                 </div>
 
-                <label className="mt-4 block">
+                <label className={`mt-4 block ${isPending ? 'cursor-not-allowed' : ''}`}>
                   <input
                     type="file"
                     accept={doc.format}
                     onChange={(e) => handleFileUpload(doc.type, e.target.files[0])}
                     className="hidden"
+                    disabled={isPending}
                   />
-                  <div className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
-                    <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-600">
-                      {status === 'REJECTED' ? 'Upload new document' : 'Click to upload'}
+                  <div
+                    className={`flex items-center justify-center p-4 border-2 border-dashed rounded-lg ${
+                      isPending
+                        ? 'border-gray-200 bg-gray-50'
+                        : 'border-gray-300 hover:border-blue-500 cursor-pointer'
+                    }`}
+                  >
+                    <Upload
+                      className={`h-5 w-5 mr-2 ${isPending ? 'text-gray-300' : 'text-gray-400'}`}
+                    />
+                    <span className={isPending ? 'text-gray-400' : 'text-gray-600'}>
+                      {status === 'REJECTED'
+                        ? 'Upload new document'
+                        : isPending
+                        ? 'Verification in progress'
+                        : 'Click to upload'}
                     </span>
                   </div>
                 </label>

@@ -55,12 +55,12 @@ export const api = {
     return handleResponse(response);
   },
   // Upload document
-  uploadDocument: async (applicationId, documentType, file) => {
+  uploadDocument: async (documentType, file) => {
     const formData = new FormData();
-    formData.append('document', file);
+    formData.append('file', file);
     formData.append('documentType', documentType);
 
-    const response = await fetch(`${BASE_URL}/loan/${applicationId}/documents`, {
+    const response = await fetch(`${BASE_URL}/user/documents/upload`, {
       method: 'POST',
       credentials: 'include',
       body: formData
