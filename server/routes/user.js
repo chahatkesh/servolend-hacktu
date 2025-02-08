@@ -62,6 +62,7 @@ router.use(passport.authenticate('jwt', { session: false }));
 router.get('/profile', userController.getProfile);
 router.put('/profile', validateProfileUpdate, userController.updateProfile);
 router.delete('/profile', userController.deleteProfile);
+router.get('/list', userController.getAllUsers);
 
 // Document routes
 router.get('/documents/:documentType', userController.getDocument);
@@ -71,6 +72,14 @@ router.post('/documents/upload',
   handleMulterError,
   userController.uploadDocument
 );
+
+// Applications route
+router.get('/applications', userController.getAllApplications);
+
+// Document routes
+router.get('/documents/:documentName', userController.viewDocument);
+router.get('/documents/:documentName/download', userController.downloadDocument);
+router.put('/documents/status', userController.updateDocumentStatus);
 
 // Loan application routes
 router.get('/loan-application', userController.getLoanApplication);

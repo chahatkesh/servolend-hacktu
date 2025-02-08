@@ -158,3 +158,21 @@ process.on('unhandledRejection', (reason, promise) => {
     throw new Error('Server shutdown due to unhandled rejection: ' + reason);
   });
 });
+
+app.use((err, req, res, next) => {
+  if (err.code === 'ENOENT') {
+    return res.status(404).json({
+      error: 'File not found',
+      details: 'The requested document could not be found on the server'
+    });
+  }
+
+  if (err.code === 'EACCES') {
+    return res.status(403).json({
+      error: 'Access denied',
+      details: 'Permission denied to access the requested document'
+    });
+  }
+
+  next(err);
+});

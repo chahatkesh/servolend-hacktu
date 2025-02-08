@@ -311,3 +311,107 @@ exports.deleteProfile = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({})
+      .select('-__v -googleId')
+      .sort({ createdAt: -1 });
+
+    res.json(users);
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get all loan applications
+exports.getAllApplications = async (req, res) => {
+  try {
+    const applications = await User.find({
+      'loanApplication.status': { $exists: true }
+    }).select('name email picture documents loanApplication kycStatus createdAt');
+
+    res.json(applications);
+  } catch (error) {
+    console.error('Get applications error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Get a specific document
+exports.viewDocument = async (req, res) => {
+  try {
+    const { documentName } = req.params;
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const document = user.documents.find(doc => doc.name === documentName);
+    if (!document || !document.filePath) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Stream the file
+    res.sendFile(document.filePath, { root: '.' });
+  } catch (error) {
+    console.error('View document error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Download document
+exports.downloadDocument = async (req, res) => {
+  try {
+    const { documentName } = req.params;
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const document = user.documents.find(doc => doc.name === documentName);
+    if (!document || !document.filePath) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    res.download(document.filePath, document.originalName);
+  } catch (error) {
+    console.error('Download document error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Update document status
+exports.updateDocumentStatus = async (req, res) => {
+  try {
+    const { documentName, status, rejectionReason } = req.body;
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Find the document
+    const docIndex = user.documents.findIndex(doc => doc.name === documentName);
+    if (docIndex === -1) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Update document status
+    user.documents[docIndex].status = status;
+    if (status === 'REJECTED' && rejectionReason) {
+      user.documents[docIndex].rejectionReason = rejectionReason;
+    }
+
+    // Save the changes
+    await user.save();
+
+    res.json(user.documents[docIndex]);
+  } catch (error) {
+    console.error('Update document status error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

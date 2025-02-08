@@ -20,6 +20,16 @@ export const api = {
     return handleResponse(response);
   },
 
+  getAllUsers: async () => {
+    const response = await fetch(`${BASE_URL}/user/list`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return handleResponse(response);
+  },
+
   post: async (endpoint, data) => {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: 'POST',

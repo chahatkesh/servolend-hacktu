@@ -139,3 +139,26 @@ exports.validateKycStatusUpdate = (req, res, next) => {
 
   next();
 };
+
+exports.validateDocumentStatusUpdate = (req, res, next) => {
+  const { documentName, status } = req.body;
+  const allowedStatuses = ['PENDING', 'VERIFIED', 'REJECTED', 'REQUIRED'];
+
+  if (!documentName) {
+    return res.status(400).json({ error: 'Document name is required' });
+  }
+
+  if (!status || !allowedStatuses.includes(status)) {
+    return res.status(400).json({
+      error: `Status must be one of: ${allowedStatuses.join(', ')}`
+    });
+  }
+
+  if (status === 'REJECTED' && !req.body.rejectionReason) {
+    return res.status(400).json({
+      error: 'Rejection reason is required when rejecting a document'
+    });
+  }
+
+  next();
+};
