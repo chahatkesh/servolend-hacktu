@@ -1,178 +1,184 @@
-// src/pages/user/UserDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CreditCard, Calendar, TrendingUp, DollarSign } from 'lucide-react';
-
-const mockData = {
-  activeLoans: [
-    { month: 'Jan', amount: 400000, forecast: 420000 },
-    { month: 'Feb', amount: 380000, forecast: 390000 },
-    { month: 'Mar', amount: 360000, forecast: 370000 },
-    { month: 'Apr', amount: 340000, forecast: 350000 },
-    { month: 'May', amount: 320000, forecast: 330000 },
-  ],
-  recentTransactions: [
-    { id: 1, type: 'repayment', amount: 25000, date: '2024-02-15', status: 'completed' },
-    { id: 2, type: 'disbursement', amount: 500000, date: '2024-01-01', status: 'completed' },
-  ]
-};
+import {
+  CreditCard,
+  Calendar,
+  TrendingUp,
+  DollarSign,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+} from 'lucide-react';
+import { api } from '../../services/api';
 
 const UserDashboard = () => {
-  const [selectedMetric, setSelectedMetric] = useState('amount');
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const StatCard = ({ icon: Icon, label, value, trend, color }) => (
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const profileData = await api.get('/user/profile');
+        const loanData = await api.get('/user/loan-application');
+        setDashboardData({ ...profileData, loanApplication: loanData });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const getRiskLevel = (eligibilityScore) => {
+    if (eligibilityScore >= 90) return { level: 'Low Risk', color: 'text-green-500' };
+    if (eligibilityScore >= 60) return { level: 'Medium Risk', color: 'text-yellow-500' };
+    return { level: 'High Risk', color: 'text-red-500' };
+  };
+
+  const getDocumentStats = (documents = []) => {
+    const total = documents.length;
+    const verified = documents.filter((doc) => doc.status === 'VERIFIED').length;
+    const pending = documents.filter((doc) => doc.status === 'PENDING').length;
+    const rejected = documents.filter((doc) => doc.status === 'REJECTED').length;
+    return { total, verified, pending, rejected };
+  };
+
+  const StatCard = ({ icon: Icon, label, value, subValue, color }) => (
     <motion.div
       whileHover={{ y: -5 }}
-      className={`bg-gradient-to-br ${color} p-6 rounded-2xl shadow-lg`}
+      className={`bg-white p-6 rounded-2xl shadow-lg border border-gray-100`}
     >
       <div className="flex justify-between items-start">
-        <div className="p-3 bg-white/10 rounded-xl">
+        <div className={`p-3 ${color} rounded-xl`}>
           <Icon className="h-6 w-6 text-white" />
         </div>
-        {trend && (
-          <span className={`text-sm ${trend > 0 ? 'text-green-300' : 'text-red-300'}`}>
-            {trend > 0 ? '+' : ''}{trend}%
-          </span>
-        )}
       </div>
       <div className="mt-4">
-        <h4 className="text-white/80 text-sm">{label}</h4>
-        <p className="text-white text-2xl font-bold mt-1">{value}</p>
+        <h4 className="text-gray-600 text-sm">{label}</h4>
+        <p className="text-gray-900 text-2xl font-bold mt-1">{value}</p>
+        {subValue && <p className="text-sm text-gray-500 mt-1">{subValue}</p>}
       </div>
     </motion.div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const documentStats = getDocumentStats(dashboardData?.documents);
+  const riskLevel = getRiskLevel(dashboardData?.loanApplication?.eligibilityScore.toFixed(2) || 0);
+
   return (
-    <div>
-      {/* Stats Cards */}
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          icon={CreditCard}
-          label="Active Loans"
-          value="₹4.2M"
-          trend={2.5}
-          color="from-blue-500 to-blue-600"
-        />
-        <StatCard 
-          icon={Calendar}
-          label="Next Payment"
-          value="₹25,000"
-          color="from-purple-500 to-purple-600"
-        />
-        <StatCard 
+        <StatCard
           icon={TrendingUp}
-          label="Credit Score"
-          value="785"
-          trend={5.2}
-          color="from-green-500 to-green-600"
+          label="Eligibility Score"
+          value={`${dashboardData?.loanApplication?.eligibilityScore.toFixed(2) || 0}%`}
+          subValue="Predicted by ServoLend"
+          color="bg-blue-500"
         />
-        <StatCard 
+        <StatCard
+          icon={AlertTriangle}
+          label="Risk Level"
+          value={riskLevel.level}
+          color="bg-purple-500"
+        />
+        <StatCard
+          icon={CreditCard}
+          label="Credit Score"
+          value={dashboardData?.creditScore || 'N/A'}
+          color="bg-green-500"
+        />
+        <StatCard
           icon={DollarSign}
-          label="Total Savings"
-          value="₹1.8L"
-          trend={-1.2}
-          color="from-orange-500 to-orange-600"
+          label="Loan Amount"
+          value={`₹${(dashboardData?.loanApplication?.loan_amnt || 0).toLocaleString()}`}
+          color="bg-orange-500"
         />
       </div>
 
-      {/* Charts and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Loan Overview</h3>
-            <div className="flex space-x-2">
-              {['amount', 'forecast'].map(metric => (
-                <button
-                  key={metric}
-                  onClick={() => setSelectedMetric(metric)}
-                  className={`px-3 py-1 rounded-lg text-sm ${
-                    selectedMetric === metric
-                      ? 'bg-blue-100 text-blue-600'
-                      : 'text-gray-500 hover:bg-gray-100'
-                  }`}
-                >
-                  {metric.charAt(0).toUpperCase() + metric.slice(1)}
-                </button>
-              ))}
+      {/* Document Status */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Document Status</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex items-center space-x-3 bg-gray-50 p-4 rounded-xl">
+            <FileText className="h-6 w-6 text-gray-600" />
+            <div>
+              <p className="text-sm text-gray-600">Total Documents</p>
+              <p className="text-xl font-bold text-gray-900">{documentStats.total}</p>
             </div>
           </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockData.activeLoans}>
-                <defs>
-                  <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#fff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey={selectedMetric}
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  fill="url(#colorAmount)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="flex items-center space-x-3 bg-green-50 p-4 rounded-xl">
+            <CheckCircle className="h-6 w-6 text-green-600" />
+            <div>
+              <p className="text-sm text-gray-600">Verified</p>
+              <p className="text-xl font-bold text-green-600">{documentStats.verified}</p>
+            </div>
           </div>
-        </motion.div>
+          <div className="flex items-center space-x-3 bg-yellow-50 p-4 rounded-xl">
+            <Clock className="h-6 w-6 text-yellow-600" />
+            <div>
+              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-xl font-bold text-yellow-600">{documentStats.pending}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 bg-red-50 p-4 rounded-xl">
+            <AlertTriangle className="h-6 w-6 text-red-600" />
+            <div>
+              <p className="text-sm text-gray-600">Rejected</p>
+              <p className="text-xl font-bold text-red-600">{documentStats.rejected}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white p-6 rounded-2xl shadow-sm"
-        >
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Activity</h3>
-          <div className="space-y-4">
-            {mockData.recentTransactions.map(transaction => (
-              <motion.div
-                key={transaction.id}
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
+      {/* Application Status */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Application Status</h3>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div
+                className={`p-2 rounded-lg ${
+                  dashboardData?.loanApplication?.status === 'approved'
+                    ? 'bg-green-100 text-green-600'
+                    : dashboardData?.loanApplication?.status === 'rejected'
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-yellow-100 text-yellow-600'
+                }`}
               >
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${
-                    transaction.type === 'repayment' 
-                      ? 'bg-red-100 text-red-600' 
-                      : 'bg-green-100 text-green-600'
-                  }`}>
-                    {transaction.type === 'repayment' ? <CreditCard size={18} /> : <DollarSign size={18} />}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {transaction.type === 'repayment' ? 'Loan Payment' : 'Loan Disbursement'}
-                    </p>
-                    <p className="text-sm text-gray-500">{transaction.date}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className={`font-medium ${
-                    transaction.type === 'repayment' ? 'text-red-600' : 'text-green-600'
-                  }`}>
-                    {transaction.type === 'repayment' ? '-' : '+'} ₹{transaction.amount.toLocaleString()}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+                <Calendar size={18} />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">Loan Application Status</p>
+                <p className="text-sm text-gray-500">
+                  Last updated:{' '}
+                  {new Date(dashboardData?.loanApplication?.lastUpdated).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                dashboardData?.loanApplication?.status === 'approved'
+                  ? 'bg-green-100 text-green-600'
+                  : dashboardData?.loanApplication?.status === 'rejected'
+                  ? 'bg-red-100 text-red-600'
+                  : 'bg-yellow-100 text-yellow-600'
+              }`}
+            >
+              {dashboardData?.loanApplication?.status?.toUpperCase() || 'PENDING'}
+            </span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
