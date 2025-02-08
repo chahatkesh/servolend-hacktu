@@ -24,7 +24,7 @@ const Layout = () => {
   const menuItems = [
     { icon: User, label: 'Profile', path: '/user' },
     { icon: Home, label: 'Dashboard', path: '/user/dashboard' },
-    { icon: FileText, label: 'Applications', path: '/user/applications' },
+    { icon: FileText, label: 'Apply For Loan', path: '/user/apply' },
     { icon: CreditCard, label: 'Repayments', path: '/user/repayments' },
     { icon: Activity, label: 'Transactions', path: '/user/transactions' },
     { icon: Settings, label: 'Settings', path: '/user/settings' },
