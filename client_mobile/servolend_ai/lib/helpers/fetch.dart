@@ -1,16 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cookie_jar/cookie_jar.dart';
+import 'dart:io';
 
 String _encodeQueryParameters(Map<String, dynamic> params) {
   return params.entries.map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}').join('&');
 }
 
 Future<dynamic> fetch(String url, Map<String, dynamic> jsonData, {String method = 'GET'}) async {
-  http.Response response;
   final cookieJar = CookieJar();
+  await cookieJar.loadForRequest(Uri.parse(url)); // Load cookies for the request
   final client = http.Client();
 
+  http.Response response;
   if (method.toUpperCase() == 'POST') {
     response = await client.post(
       Uri.parse(url),
