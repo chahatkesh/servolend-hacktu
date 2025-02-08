@@ -1,35 +1,82 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Layouts
+import Layout from './components/layout/Layout';
+import AdminLayout from './components/admin/AdminLayout';
 
+// User routes
+import Home from './pages/Home';
+import Login from './pages/Login';
+import UserDashboard from './pages/user/UserDashboard';
+import LoanApplication from './pages/user/LoanApplication';
+import LoanRepayment from './pages/user/LoanRepayment';
+import TransactionHistory from './pages/user/TransactionHistory';
+import UserProfile from './pages/user/UserProfile';
+import Settings from './pages/user/UserSettings';
+
+// Admin routes
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ApplicationReview from './pages/admin/ApplicationReview';
+import DocumentVerification from './pages/admin/DocumentVerification';
+import LoanAssesment from './pages/admin/LoanAssesment';
+
+const App = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router>
+      <AuthProvider>
+        <AdminAuthProvider>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-export default App
+            {/* User routes */}
+            <Route
+              path="/user"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<UserProfile />} />
+              <Route path="applications" element={<LoanApplication />} />
+              <Route path="repayments" element={<LoanRepayment />} />
+              <Route path="transactions" element={<TransactionHistory />} />
+              <Route path="dashboard" element={<UserDashboard />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+
+            {/* Admin routes */}
+            <Route
+              path="/admin"
+              element={
+                <AdminProtectedRoute>
+                  <AdminLayout />
+                </AdminProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="applications" element={<ApplicationReview />} />
+              <Route path="verification" element={<DocumentVerification />} />
+              <Route path="assessment" element={<LoanAssesment />} />
+            </Route>
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AdminAuthProvider>
+      </AuthProvider>
+    </Router>
+  );
+};
+
+export default App;
