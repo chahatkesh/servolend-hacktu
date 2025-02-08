@@ -1,3 +1,4 @@
+// server/models/LoanApplication.js
 const mongoose = require('mongoose');
 
 const loanApplicationSchema = new mongoose.Schema({
@@ -6,20 +7,29 @@ const loanApplicationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // Basic Information
-  amount: {
+  applicantName: {
+    type: String,
+    required: true
+  },
+  // Basic Application Info
+  loanAmount: {
     type: Number,
     required: true
   },
-  tenure: {
-    type: Number,
+  loanType: {
+    type: String,
+    enum: ['PERSONAL', 'BUSINESS', 'HOME', 'EDUCATION', 'VEHICLE'],
     required: true
   },
-  purpose: {
+  loanPurpose: {
     type: String,
     required: true
   },
   interestRate: {
+    type: Number,
+    required: true
+  },
+  tenure: {
     type: Number,
     required: true
   },
@@ -33,99 +43,129 @@ const loanApplicationSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  ownership: {
+  occupation: {
     type: String,
-    enum: ['RENT', 'OWN', 'MORTGAGE', 'OTHER'],
+    required: true
+  },
+  employerName: {
+    type: String,
+    required: true
+  },
+  employmentType: {
+    type: String,
+    enum: ['SALARIED', 'SELF_EMPLOYED', 'BUSINESS', 'OTHER'],
     required: true
   },
   employmentLength: {
     type: Number,
     required: true
   },
-  
-  // Model Assessment
-  eligibilityScore: {
-    type: Number,
-    required: true
-  },
-  isEligible: {
-    type: Boolean,
-    required: true
-  },
-  riskLevel: {
-    type: String,
-    enum: ['LOW', 'MEDIUM', 'HIGH'],
-    required: true
-  },
-  
-  // Application Status
-  status: {
-    type: String,
-    enum: ['PENDING', 'DOCUMENTS_PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'],
-    default: 'PENDING'
-  },
+
+  // Documents
   documents: [{
     type: {
       type: String,
-      required: true
-    },
-    path: {
-      type: String,
-      required: true
+      required: true,
+      enum: ['PAN_CARD', 'AADHAR_CARD', 'INCOME_PROOF', 'BANK_STATEMENT']
     },
     status: {
       type: String,
       enum: ['PENDING', 'VERIFIED', 'REJECTED'],
       default: 'PENDING'
     },
+    path: String,
     uploadedAt: {
+      type: Date,
+      default: Date.now
+    },
+    verifiedAt: Date,
+    rejectionReason: String
+  }],
+
+  // Assessment
+  creditScore: {
+    type: Number
+  },
+  riskLevel: {
+    type: String,
+    enum: ['LOW', 'MEDIUM', 'HIGH']
+  },
+  eligibilityScore: {
+    type: Number
+  },
+  monthlyIncome: {
+    type: Number,
+    required: true
+  },
+  existingEMIs: {
+    type: Number,
+    default: 0
+  },
+
+  // Application Status
+  status: {
+    type: String,
+    enum: ['DRAFT', 'SUBMITTED', 'DOCUMENT_PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'],
+    default: 'DRAFT'
+  },
+  submittedAt: Date,
+  lastUpdatedAt: {
+    type: Date,
+    default: Date.now
+  },
+
+  // Admin Review
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  reviewNotes: [{
+    note: String,
+    addedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    addedAt: {
       type: Date,
       default: Date.now
     }
   }],
-  
-  // Admin Review
-  reviewedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  reviewNotes: String,
   rejectionReason: String,
-  
-  // Timestamps
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  approvedAmount: Number,
+  approvedInterestRate: Number
+}, {
+  timestamps: true
 });
 
-// Update timestamp before saving
+// Update lastUpdatedAt before saving
 loanApplicationSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  this.lastUpdatedAt = new Date();
   next();
 });
 
 // Virtual for EMI calculation
 loanApplicationSchema.virtual('emi').get(function() {
-  const principal = this.amount;
-  const ratePerMonth = (this.interestRate / 12) / 100;
-  const numberOfPayments = this.tenure;
+  const P = this.loanAmount;
+  const R = (this.interestRate / 12) / 100;
+  const N = this.tenure;
   
   return Math.round(
-    principal * 
-    ratePerMonth * 
-    Math.pow(1 + ratePerMonth, numberOfPayments) / 
-    (Math.pow(1 + ratePerMonth, numberOfPayments) - 1)
+    P * R * Math.pow(1 + R, N) / 
+    (Math.pow(1 + R, N) - 1)
   );
 });
 
-// Method to check document completion
+// Method to check if all required documents are uploaded
 loanApplicationSchema.methods.areDocumentsComplete = function() {
-  return this.documents.every(doc => doc.status === 'VERIFIED');
+  const requiredDocs = ['PAN_CARD', 'AADHAR_CARD', 'INCOME_PROOF', 'BANK_STATEMENT'];
+  return requiredDocs.every(docType => 
+    this.documents.some(doc => doc.type === docType && doc.status === 'VERIFIED')
+  );
+};
+
+// Method to check if application is ready for review
+loanApplicationSchema.methods.isReadyForReview = function() {
+  return this.status === 'SUBMITTED' && this.areDocumentsComplete();
 };
 
 const LoanApplication = mongoose.model('LoanApplication', loanApplicationSchema);
