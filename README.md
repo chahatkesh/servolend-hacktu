@@ -5,4 +5,5 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
-![servolend-git-banner](https://github.com/user-attachments/assets/03385d37-5ef0-4c6a-8d38-0105e2fc3336)
+![servolend repo cover](https://github.com/user-attachments/assets/27be34cb-fc0f-4a1a-8371-9d495ab0f74f)
+
