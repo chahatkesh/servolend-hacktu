@@ -1,13 +1,25 @@
-// src/components/layout/Layout.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Menu, Home, FileText, Settings, User, CreditCard, Activity, Bell } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; // Import useAuth hook
 
 const Layout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
+  const { user } = useAuth(); // Get user from auth context
+
+  // Get user's initials for the avatar
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const menuItems = [
     { icon: User, label: 'Profile', path: '/user' },
@@ -131,11 +143,11 @@ const Layout = () => {
                   className="flex items-center space-x-4 bg-gray-50 p-2 rounded-xl cursor-pointer"
                 >
                   <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-medium shadow-lg">
-                    JD
+                    {getInitials(user?.name)}
                   </div>
                   <div className="text-sm">
-                    <p className="font-medium text-gray-900">John Doe</p>
-                    <p className="text-gray-500">Premium User</p>
+                    <p className="font-medium text-gray-900">{user?.name || 'Guest User'}</p>
+                    <p className="text-gray-500">{user?.membership || 'Basic'} User</p>
                   </div>
                 </motion.div>
               </div>
