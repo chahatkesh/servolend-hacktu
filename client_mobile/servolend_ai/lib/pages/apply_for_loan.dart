@@ -33,7 +33,13 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Apply for Loan"),
+        title: const Text(
+          "Apply for Loan",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFF2c5cf2),
       ),
@@ -51,7 +57,8 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
             },
           ),
           Page2(
-            next: (age, annualIncome, employmentLength, creditHistoryLength, homeOwnership, loanIntent) {
+            next: (age, annualIncome, employmentLength, creditHistoryLength,
+                homeOwnership, loanIntent) {
               setState(() {
                 personalDetails['age'] = age;
                 personalDetails['annualIncome'] = annualIncome;
@@ -86,21 +93,28 @@ class Page1 extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        spacing: 10,
         children: [
-          const Text("Loan Information", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text("Check Loan Eligibility",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           MyTextfield(
             hintText: "Loan Amount",
             controller: loanAmountController,
-            inputType: const TextInputType.numberWithOptions(decimal: true), onChanged: (v) {  }
+            inputType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (v) {},
+            prefixIcon: Icon(Icons.currency_rupee),
           ),
           const SizedBox(height: 16),
           MyTextfield(
             hintText: "Interest Rate",
             controller: interestRateController,
-            inputType: const TextInputType.numberWithOptions(decimal: true), onChanged: (v) {  }
+            inputType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (v) {},
+            prefixIcon: Icon(Icons.percent),
           ),
           const SizedBox(height: 16),
           Row(
@@ -108,7 +122,8 @@ class Page1 extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  if (loanAmountController.text.isNotEmpty && interestRateController.text.isNotEmpty) {
+                  if (loanAmountController.text.isNotEmpty &&
+                      interestRateController.text.isNotEmpty) {
                     next(
                       int.parse(loanAmountController.text),
                       double.parse(interestRateController.text),
@@ -135,46 +150,70 @@ class Page2 extends StatelessWidget {
   Page2({super.key, required this.next, required this.back});
   final TextEditingController ageController = TextEditingController();
   final TextEditingController annualIncomeController = TextEditingController();
-  final TextEditingController employmentLengthController = TextEditingController();
-  final TextEditingController creditHistoryLengthController = TextEditingController();
-  final List<String> homeOwnershipOptions = ["Rent", "Own", "Mortgage", "Other"];
-  final List<String> loanIntentOptions = ["Personal", "Education", "Medical", "Venture", "Home Improvement", "Debt Consolation"];
+  final TextEditingController employmentLengthController =
+      TextEditingController();
+  final TextEditingController creditHistoryLengthController =
+      TextEditingController();
+  final List<String> homeOwnershipOptions = [
+    "Rent",
+    "Own",
+    "Mortgage",
+    "Other"
+  ];
+  final List<String> loanIntentOptions = [
+    "Personal",
+    "Education",
+    "Medical",
+    "Venture",
+    "Home Improvement",
+    "Debt Consolation"
+  ];
   String selectedHomeOwnership = "Rent";
   String selectedLoanIntent = "Personal";
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Personal Details", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text("Personal Details",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             MyTextfield(
               hintText: "Age",
               controller: ageController,
-              inputType: const TextInputType.numberWithOptions(decimal: false), onChanged: (v) {  }
+              inputType: const TextInputType.numberWithOptions(decimal: false),
+              onChanged: (v) {},
+              prefixIcon: Icon(Icons.person),
             ),
             const SizedBox(height: 16),
             MyTextfield(
               hintText: "Annual Income",
               controller: annualIncomeController,
-              inputType: const TextInputType.numberWithOptions(decimal: true), onChanged: (v) {  }
+              inputType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) {},
+              prefixIcon: Icon(Icons.currency_rupee),
             ),
             const SizedBox(height: 16),
             MyTextfield(
               hintText: "Employment Length (in years)",
               controller: employmentLengthController,
-              inputType: const TextInputType.numberWithOptions(decimal: true), onChanged: (v) {  },
+              inputType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) {},
+              prefixIcon: Icon(Icons.timelapse_rounded),
             ),
             const SizedBox(height: 16),
             MyTextfield(
               hintText: "Credit History Length (in years)",
               controller: creditHistoryLengthController,
-              inputType: const TextInputType.numberWithOptions(decimal: true), onChanged: (v) {  },
+              inputType: const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (v) {},
+              prefixIcon: Icon(Icons.credit_card),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
@@ -254,7 +293,11 @@ class Page3 extends StatefulWidget {
   final Map<String, dynamic> loanInfo;
   final Map<String, dynamic> personalDetails;
 
-  Page3({super.key, required this.back, required this.loanInfo, required this.personalDetails});
+  Page3(
+      {super.key,
+      required this.back,
+      required this.loanInfo,
+      required this.personalDetails});
 
   @override
   State<Page3> createState() => _Page3State();
@@ -270,12 +313,17 @@ class _Page3State extends State<Page3> {
     finalObject = {
       'age': widget.personalDetails['age'],
       'income': widget.personalDetails['annualIncome'],
-      'ownership': (widget.personalDetails['homeOwnership'] as String).replaceAll(' ', '').toUpperCase(),
+      'ownership': (widget.personalDetails['homeOwnership'] as String)
+          .replaceAll(' ', '')
+          .toUpperCase(),
       'employment_len': widget.personalDetails['employmentLength'],
-      'loan_intent': (widget.personalDetails['loanIntent'] as String).replaceAll(' ', '').toUpperCase(),
+      'loan_intent': (widget.personalDetails['loanIntent'] as String)
+          .replaceAll(' ', '')
+          .toUpperCase(),
       'loan_amnt': widget.loanInfo['loanAmount'],
       'loan_int_rate': widget.loanInfo['interestRate'],
-      'loan_percent_income': widget.loanInfo['loanAmount'] / widget.personalDetails['annualIncome'],
+      'loan_percent_income': widget.loanInfo['loanAmount'] /
+          widget.personalDetails['annualIncome'],
       'cred_hist_len': widget.personalDetails['creditHistoryLength'],
     };
     getData();
@@ -296,58 +344,77 @@ class _Page3State extends State<Page3> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Loan Information:", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text("Loan Amount: ${widget.loanInfo['loanAmount']}", style: const TextStyle(fontSize: 16)),
-          Text("Interest Rate: ${widget.loanInfo['interestRate']}", style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 16),
-          const Text("Personal Details:", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text("Age: ${widget.personalDetails['age']}", style: const TextStyle(fontSize: 16)),
-          Text("Annual Income: ${widget.personalDetails['annualIncome']}", style: const TextStyle(fontSize: 16)),
-          Text("Employment Length: ${widget.personalDetails['employmentLength']} years", style: const TextStyle(fontSize: 16)),
-          Text("Credit History Length: ${widget.personalDetails['creditHistoryLength']} years", style: const TextStyle(fontSize: 16)),
-          Text("Home Ownership: ${widget.personalDetails['homeOwnership']}", style: const TextStyle(fontSize: 16)),
-          Text("Loan Intent: ${widget.personalDetails['loanIntent']}", style: const TextStyle(fontSize: 16)),
-          if (result.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text("Eligibility Probability:", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                dataMap: {
-                  "Eligible": result['prob_eligible'],
-                  "Not Eligible": result['prob_not_eligible'],
-                },
-                colorList: [Colors.blue, Colors.grey],
-                chartType: ChartType.ring,
-                ringStrokeWidth: 32,
-                chartValuesOptions: const ChartValuesOptions(
-                  showChartValuesInPercentage: true,
-                  showChartValuesOutside: true,
-                ),
-                legendOptions: const LegendOptions(
-                  showLegends: true,
-                  legendPosition: LegendPosition.bottom,
-                ),
-              ),
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          spacing: 8,
+          children: [
+            if (result.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              // const Text("Eligibility Probability",
+            // style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              SizedBox(
+          height: 200,
+          child: PieChart(
+            dataMap: {
+              "Eligible": result['prob_eligible'],
+              "Not Eligible": result['prob_not_eligible'],
+            },
+            colorList: [Colors.blue, Colors.grey],
+            chartType: ChartType.ring,
+            ringStrokeWidth: 32,
+            chartValuesOptions: const ChartValuesOptions(
+              showChartValuesInPercentage: true,
+              showChartValuesOutside: true,
             ),
-          ],
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            legendOptions: const LegendOptions(
+              showLegends: true,
+              legendPosition: LegendPosition.bottom,
+            ),
+          ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
             children: [
-              ElevatedButton(
-                onPressed: widget.back,
-                child: const Text("Back"),
+              Text(
+              (result['prob_eligible'] >= 0.5)
+                ? "You meet the eligibility criteria for the loan."
+                : "You do not meet the eligibility criteria for the loan.",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+              "Your eligibility score is ${(result['prob_eligible'] * 100).toStringAsFixed(2)}%",
+              style: const TextStyle(fontSize: 16),
               ),
             ],
           ),
-        ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+          ElevatedButton(
+            onPressed: widget.back,
+            child: const Text("Back"),
+          ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

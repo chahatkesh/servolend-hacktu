@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class MyTextfield extends StatelessWidget {
   final String hintText;
   final Icon? prefixIcon;
+  final Icon? suffixIcon; // New field for optional icon
   final bool obscureText;
   final TextEditingController controller;
   final TextInputType inputType;
@@ -12,6 +13,7 @@ class MyTextfield extends StatelessWidget {
     super.key,
     required this.hintText,
     this.prefixIcon,
+    this.suffixIcon, // Initialize the new field
     this.obscureText = false,
     required this.controller,
     required this.inputType,
@@ -36,6 +38,7 @@ class MyTextfield extends StatelessWidget {
           fontSize: 14,
         ),
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon, // Add the new field to the decoration
         filled: true,
         fillColor: Colors.white,
         contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
