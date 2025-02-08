@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-  Camera,
-  Edit2,
-  Mail,
-  Phone,
-  MapPin,
-  Shield,
-  Key,
-  Bell,
-  ChevronRight,
-  Lock,
-  User,
-  CreditCard,
-  FileText,
-  AlertCircle,
-  UploadCloud,
-  Building,
-  DollarSign,
-  X,
-  CheckCircle,
-} from 'lucide-react';
+import { Camera, Shield, Bell, User, FileText, AlertCircle, X, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   getProfile,
@@ -140,7 +120,7 @@ const ProfileHeader = ({ profile, handleLogout, handleImageUpload, imageLoading 
 
         <button
           onClick={handleLogout}
-          className="ml-auto px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+          className="ml-auto z-10 cursor-pointer px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
         >
           Logout
         </button>
