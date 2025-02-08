@@ -12,12 +12,9 @@ import AdminLayout from './components/admin/AdminLayout';
 // Public routes
 import Home from './pages/Home';
 import Login from './pages/Login';
-<<<<<<< HEAD
 import About from './pages/About';
 import Contact from './pages/Contact';
-=======
 import AdminLogin from './pages/AdminLogin';
->>>>>>> 4d0537ae3492b3a5866bb436ed2f6147755a87f9
 
 // User routes
 import UserDashboard from './pages/user/UserDashboard';
