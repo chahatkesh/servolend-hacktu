@@ -2,50 +2,75 @@ import 'package:flutter/material.dart';
 
 class MyTextfield extends StatelessWidget {
   final String hintText;
+  final Icon? prefixIcon;
   final bool obscureText;
-  final int minLines;
-  final TextInputType inputType;
   final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+  final TextInputType inputType;
+  final Function(String) onChanged;
 
-  const MyTextfield(
-      {super.key,
-      required this.hintText,
-      this.inputType = TextInputType.text,
-      this.minLines = 1,
-      required this.obscureText,
-      required this.controller,
-      required this.onChanged});
+  const MyTextfield({
+    super.key,
+    required this.hintText,
+    this.prefixIcon,
+    this.obscureText = false,
+    required this.controller,
+    required this.inputType,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-      child: TextField(
-        keyboardType: inputType,
-        onChanged: onChanged,
-        controller: controller,
-        scrollPhysics: BouncingScrollPhysics(),
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              // color: Theme.of(context).colorScheme.primary,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          hintText: hintText,
-          hintStyle: TextStyle(
-            // color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w500,
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: inputType,
+      onChanged: onChanged,
+      style: TextStyle(
+        color: Colors.black,
+        fontSize: 16,
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(
+          color: Colors.grey[700],
+          fontSize: 14,
+        ),
+        prefixIcon: prefixIcon,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
           ),
         ),
-        obscureText: obscureText,
-        minLines: minLines,
-        maxLines: inputType == TextInputType.multiline ? null : 1,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.grey[400]!,
+            width: 1,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red,
+            width: 1,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
       ),
     );
   }
