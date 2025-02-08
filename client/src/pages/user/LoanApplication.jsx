@@ -1,16 +1,67 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CreditCard, Briefcase, Building, 
-  ChevronRight, ChevronLeft, 
+import { useNavigate } from 'react-router-dom';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  ChevronRight,
+  ChevronLeft,
+  DollarSign,
+  Briefcase,
+  Home,
+  Clock,
+  User,
+  CreditCard,
 } from 'lucide-react';
 
-const LoanApplication = () => {
+const CircularProgressChart = ({ percentage }) => {
+  // Convert percentage to a number between 0-100
+  const normalizedPercentage = Math.min(100, Math.max(0, parseFloat(percentage)));
+
+  // Calculate the circumference and offset
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (normalizedPercentage / 100) * circumference;
+
+  // Determine color based on percentage
+  const getColor = (percent) => {
+    if (percent >= 90) return '#4ade80'; // green
+    if (percent >= 50) return '#3b82f6'; // blue
+    return '#f87171'; // red
+  };
+
+  return (
+    <div className="relative w-48 h-48 mx-auto">
+      {/* Background circle */}
+      <svg className="w-full h-full transform -rotate-90">
+        <circle cx="96" cy="96" r={radius} stroke="#e5e7eb" strokeWidth="12" fill="none" />
+        {/* Progress circle */}
+        <circle
+          cx="96"
+          cy="96"
+          r={radius}
+          stroke={getColor(normalizedPercentage)}
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-500 ease-out"
+        />
+      </svg>
+      {/* Percentage text */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-3xl font-bold text-gray-700">{normalizedPercentage.toFixed(1)}%</span>
+      </div>
+    </div>
+  );
+};
+
+const LoanEligibilityForm = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [predictionData, setPredictionData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [result, setResult] = useState(null);
+
   const [formData, setFormData] = useState({
     age: '',
     income: '',
@@ -20,42 +71,46 @@ const LoanApplication = () => {
     loan_amnt: '',
     loan_int_rate: '',
     loan_percent_income: '',
-    cred_hist_len: ''
+    cred_hist_len: '',
   });
 
-  const calculateLoanPercentIncome = (loanAmount, income) => {
-    return ((parseFloat(loanAmount) / parseFloat(income)) * 100).toFixed(2);
+  const calculateLoanPercentIncome = () => {
+    const loanAmount = parseFloat(formData.loan_amnt);
+    const income = parseFloat(formData.income);
+    return (loanAmount / income).toFixed(2);
   };
 
-  const handlePrediction = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      const calculatedPercentIncome = calculateLoanPercentIncome();
+      const requestData = {
+        ...formData,
+        loan_percent_income: calculatedPercentIncome,
+      };
+
       const response = await fetch('https://deploy-api-17es.onrender.com/predict', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          age: parseInt(formData.age),
-          income: parseInt(formData.income),
-          ownership: formData.ownership,
-          employment_len: parseFloat(formData.employment_len),
-          loan_intent: formData.loan_intent,
-          loan_amnt: parseInt(formData.loan_amnt),
-          loan_int_rate: parseFloat(formData.loan_int_rate),
-          loan_percent_income: parseFloat(formData.loan_percent_income),
-          cred_hist_len: parseInt(formData.cred_hist_len)
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get prediction');
-      }
+      if (!response.ok) throw new Error('Failed to check eligibility');
 
       const data = await response.json();
-      setPredictionData(data);
+      console.log('API Response:', data); // For debugging
+      setResult(data);
+      setStep(3);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,75 +118,243 @@ const LoanApplication = () => {
     }
   };
 
-  const handleNext = async () => {
-    if (step === 2) {
-      const loanPercentIncome = calculateLoanPercentIncome(
-        formData.loan_amnt, 
-        formData.income
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Loan Amount</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              name="loan_amnt"
+              value={formData.loan_amnt}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter loan amount"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Interest Rate (%)</label>
+          <div className="relative">
+            <CreditCard className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              step="0.01"
+              name="loan_int_rate"
+              value={formData.loan_int_rate}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter interest rate"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Age</label>
+          <div className="relative">
+            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              name="age"
+              value={formData.age}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your age"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Annual Income</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              name="income"
+              value={formData.income}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter annual income"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Employment Length (years)
+          </label>
+          <div className="relative">
+            <Briefcase className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              name="employment_len"
+              value={formData.employment_len}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Years of employment"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Credit History Length (years)
+          </label>
+          <div className="relative">
+            <Clock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <input
+              type="number"
+              name="cred_hist_len"
+              value={formData.cred_hist_len}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Years of credit history"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Home Ownership</label>
+          <div className="relative">
+            <Home className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <select
+              name="ownership"
+              value={formData.ownership}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="RENT">Rent</option>
+              <option value="MORTGAGE">Mortgage</option>
+              <option value="OWN">Own</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Loan Purpose</label>
+          <div className="relative">
+            <Briefcase className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <select
+              name="loan_intent"
+              value={formData.loan_intent}
+              onChange={handleInputChange}
+              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="EDUCATION">Education</option>
+              <option value="PERSONAL">Personal</option>
+              <option value="MEDICAL">Medical</option>
+              <option value="VENTURE">Venture</option>
+              <option value="DEBT_CONSOLIDATION">Debt Consolidation</option>
+              <option value="HOME_IMPROVEMENT">Home Improvement</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderEligibilityResult = () => {
+    if (!result) return null;
+
+    const eligibilityScore = result['prob_not_eligible']
+      ? (parseFloat(result['prob_eligible']) * 100).toFixed(2)
+      : 0;
+
+    if (isNaN(eligibilityScore)) {
+      return (
+        <div className="bg-white rounded-xl p-6">
+          <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+            Error processing eligibility result. Please try again.
+          </div>
+        </div>
       );
-      setFormData(prev => ({
-        ...prev,
-        loan_percent_income: loanPercentIncome
-      }));
-      await handlePrediction();
     }
-    
-    if (step < 4) setStep(step + 1);
-    else {
-      console.log('Form submitted:', formData);
-    }
-  };
 
-  const PredictionResult = ({ predictionData, isLoading, error }) => {
-    if (isLoading) return <div className="text-gray-600">Calculating eligibility...</div>;
-    if (error) return <div className="text-red-600">Error: {error}</div>;
-    if (!predictionData) return null;
-
-    const eligibilityProb = parseFloat(predictionData['prob of eligible']);
-    const isEligible = eligibilityProb > 0.7;
+    const eligibilityScoreNum = parseFloat(eligibilityScore);
+    const isHighlyEligible = eligibilityScoreNum >= 90;
+    const isEligible = eligibilityScoreNum >= 50;
 
     return (
-      <div className={`p-6 rounded-lg ${isEligible ? 'bg-green-50' : 'bg-red-50'}`}>
-        <h4 className="text-lg font-semibold mb-4">
-          {isEligible ? 'Congratulations!' : 'We apologize,'}
-        </h4>
-        <p className={`text-lg ${isEligible ? 'text-green-700' : 'text-red-700'}`}>
-          {isEligible 
-            ? 'You are eligible for this loan!' 
-            : 'You are not eligible for this loan at this time.'}
-        </p>
-        <p className="mt-2 text-gray-600">
-          Eligibility Score: {(eligibilityProb * 100).toFixed(1)}%
-        </p>
+      <div className="bg-white rounded-xl p-6">
+        <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="w-full md:w-1/2">
+            <CircularProgressChart percentage={eligibilityScore} />
+          </div>
+
+          <div className="w-full md:w-1/2 space-y-6">
+            <div
+              className={`p-6 rounded-lg ${
+                isHighlyEligible ? 'bg-green-50' : isEligible ? 'bg-blue-50' : 'bg-red-50'
+              }`}
+            >
+              <h3
+                className={`text-lg font-semibold ${
+                  isHighlyEligible
+                    ? 'text-green-800'
+                    : isEligible
+                    ? 'text-blue-800'
+                    : 'text-red-800'
+                }`}
+              >
+                {isHighlyEligible
+                  ? '✨ Congratulations! You are eligible for the loan.'
+                  : isEligible
+                  ? 'You meet the eligibility criteria for the loan.'
+                  : 'Unfortunately, you do not meet the eligibility criteria at this time.'}
+              </h3>
+              <p className="mt-2 text-gray-600">Your eligibility score is {eligibilityScore}%</p>
+            </div>
+
+            <button
+              onClick={() => navigate(isEligible ? '/user/verification' : '/user/analysis')}
+              className={`w-full py-3 px-4 rounded-lg text-white transition-colors ${
+                isEligible ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'
+              }`}
+            >
+              {isEligible ? 'Proceed Further' : 'View Detailed Analysis'}
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Check Loan Eligibility</h1>
+        <p className="mt-2 text-gray-600">
+          Fill in your details to check if you qualify for a loan
+        </p>
+      </div>
+
       <div className="mb-8">
         <div className="flex justify-between items-center">
-          {[1, 2, 3, 4].map((stepNumber) => (
+          {[1, 2, 3].map((stepNumber) => (
             <div
               key={stepNumber}
-              className={`flex items-center ${
-                stepNumber === 4 ? '' : 'flex-1'
-              }`}
+              className={`flex items-center ${stepNumber === 3 ? '' : 'flex-1'}`}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step >= stepNumber
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600'
+                  step >= stepNumber ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 {stepNumber}
               </div>
-              {stepNumber !== 4 && (
+              {stepNumber !== 3 && (
                 <div
-                  className={`h-1 flex-1 mx-2 ${
-                    step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
+                  className={`h-1 flex-1 mx-2 ${step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'}`}
                 />
               )}
             </div>
@@ -139,263 +362,94 @@ const LoanApplication = () => {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="bg-white rounded-2xl shadow-lg p-8"
-        >
-          {step === 1 && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Loan Amount
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.loan_amnt}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      loan_amnt: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter loan amount"
-                  />
-                </div>
+      <div className="bg-white rounded-2xl shadow-lg p-8">
+        {step === 1 && renderStep1()}
+        {step === 2 && renderStep2()}
+        {step === 3 && renderEligibilityResult()}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Interest Rate
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.loan_int_rate}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      loan_int_rate: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter interest rate"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Personal Details</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      age: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter your age"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Annual Income
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.income}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      income: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter annual income"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Employment Length (years)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formData.employment_len}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      employment_len: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Years of employment"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Credit History Length (years)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.cred_hist_len}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      cred_hist_len: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Years of credit history"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Home Ownership
-                  </label>
-                  <select
-                    value={formData.ownership}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      ownership: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="RENT">Rent</option>
-                    <option value="OWN">Own</option>
-                    <option value="MORTGAGE">Mortgage</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Loan Intent
-                  </label>
-                  <select
-                    value={formData.loan_intent}
-                    onChange={(e) => setFormData({ 
-                      ...formData, 
-                      loan_intent: e.target.value 
-                    })}
-                    className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="PERSONAL">Personal</option>
-                    <option value="EDUCATION">Education</option>
-                    <option value="MEDICAL">Medical</option>
-                    <option value="VENTURE">Venture</option>
-                    <option value="HOME_IMPROVEMENT">Home Improvement</option>
-                    <option value="DEBT_CONSOLIDATION">Debt Consolidation</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && predictionData && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Eligibility Results</h3>
-              <PredictionResult 
-                predictionData={predictionData}
-                isLoading={isLoading}
-                error={error}
-              />
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900">Review Application</h3>
-              
-              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">Loan Details</h4>
-                    <div className="mt-2 space-y-2">
-                      <p className="text-sm">
-                        <span className="font-medium">Amount:</span> ₹{formData.loan_amnt}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Interest Rate:</span> {formData.loan_int_rate}%
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Purpose:</span> {formData.loan_intent}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">Personal Details</h4>
-                    <div className="mt-2 space-y-2">
-                      <p className="text-sm">
-                        <span className="font-medium">Age:</span> {formData.age}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Income:</span> ₹{formData.income}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Employment Length:</span> {formData.employment_len} years
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {predictionData && (
-                  <div className="mt-6">
-                    <PredictionResult 
-                      predictionData={predictionData}
-                      isLoading={false}
-                      error={null}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8 flex justify-between">
-            {step > 1 && (
-              <button
-                onClick={() => setStep(step - 1)}
-                className="flex items-center px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
-              >
-                <ChevronLeft className="h-5 w-5 mr-2" />
-                Previous
-              </button>
-            )}
+        <div className="mt-8 flex justify-between">
+          {step > 1 && (
             <button
-              onClick={handleNext}
+              onClick={() => setStep(step - 1)}
+              className="flex items-center px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <ChevronLeft className="h-5 w-5 mr-2" />
+              Previous
+            </button>
+          )}
+
+          {step < 3 && (
+            <button
+              onClick={() => {
+                if (step === 2) {
+                  handleSubmit();
+                } else {
+                  setStep(step + 1);
+                }
+              }}
               disabled={isLoading}
               className={`flex items-center px-6 py-3 rounded-lg ml-auto ${
-                isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } text-white`}
+                isLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
             >
               {isLoading ? (
-                <>
-                  <span className="animate-spin mr-2">⌛</span>
+                <div className="flex items-center">
+                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
                   Processing...
-                </>
+                </div>
               ) : (
                 <>
-                  {step === 4 ? 'Submit Application' : 'Continue'}
+                  Continue
                   <ChevronRight className="h-5 w-5 ml-2" />
                 </>
               )}
             </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+          )}
+        </div>
+
+        {error && <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-lg">{error}</div>}
+      </div>
+
+      {/* Tooltips and Helpful Information */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <h4 className="font-semibold text-blue-900">Loan Amount</h4>
+          <p className="mt-1 text-sm text-blue-700">
+            The amount you wish to borrow. Consider your repayment capacity and monthly income.
+          </p>
+        </div>
+        <div className="p-4 bg-green-50 rounded-lg">
+          <h4 className="font-semibold text-green-900">Credit History</h4>
+          <p className="mt-1 text-sm text-green-700">
+            A longer credit history with good payment records increases your chances of approval.
+          </p>
+        </div>
+        <div className="p-4 bg-purple-50 rounded-lg">
+          <h4 className="font-semibold text-purple-900">Interest Rate</h4>
+          <p className="mt-1 text-sm text-purple-700">
+            Current market rates typically range between 8% to 15%. Lower rates for better credit
+            scores.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default LoanApplication;
+export default LoanEligibilityForm;

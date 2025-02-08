@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, Link } from 'react-router-dom';
 import { Menu, Home, FileText, Settings, User, CreditCard, Activity, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext'; // Import useAuth hook
 
@@ -76,13 +76,15 @@ const Layout = () => {
           className="w-72 bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 fixed h-full z-20"
         >
           <div className="p-8">
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-2xl font-bold text-white"
-            >
-              ServoLend
-            </motion.h1>
+            <Link to="/">
+              <motion.h1
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-2xl font-bold text-white"
+              >
+                ServoLend
+              </motion.h1>
+            </Link>
           </div>
 
           <nav className="mt-8 px-4 space-y-2">

@@ -12,6 +12,7 @@ import AdminLayout from './components/admin/AdminLayout';
 // User routes
 import Home from './pages/Home';
 import Login from './pages/Login';
+import TaxCalculator from './pages/TaxCalculator';
 import UserDashboard from './pages/user/UserDashboard';
 import LoanApplication from './pages/user/LoanApplication';
 import LoanRepayment from './pages/user/LoanRepayment';
@@ -36,6 +37,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/calculator" element={<TaxCalculator />} />
 
             {/* User routes */}
             <Route
