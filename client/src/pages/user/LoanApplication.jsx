@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../../context/AuthContext';
 import {
   ChevronRight,
   ChevronLeft,
@@ -12,16 +12,13 @@ import {
   CreditCard,
 } from 'lucide-react';
 
+// Circular Progress Chart Component
 const CircularProgressChart = ({ percentage }) => {
-  // Convert percentage to a number between 0-100
   const normalizedPercentage = Math.min(100, Math.max(0, parseFloat(percentage)));
-
-  // Calculate the circumference and offset
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (normalizedPercentage / 100) * circumference;
 
-  // Determine color based on percentage
   const getColor = (percent) => {
     if (percent >= 90) return '#4ade80'; // green
     if (percent >= 50) return '#3b82f6'; // blue
@@ -30,10 +27,8 @@ const CircularProgressChart = ({ percentage }) => {
 
   return (
     <div className="relative w-48 h-48 mx-auto">
-      {/* Background circle */}
       <svg className="w-full h-full transform -rotate-90">
         <circle cx="96" cy="96" r={radius} stroke="#e5e7eb" strokeWidth="12" fill="none" />
-        {/* Progress circle */}
         <circle
           cx="96"
           cy="96"
@@ -47,7 +42,6 @@ const CircularProgressChart = ({ percentage }) => {
           className="transition-all duration-500 ease-out"
         />
       </svg>
-      {/* Percentage text */}
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-3xl font-bold text-gray-700">{normalizedPercentage.toFixed(1)}%</span>
       </div>
@@ -57,10 +51,12 @@ const CircularProgressChart = ({ percentage }) => {
 
 const LoanEligibilityForm = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     age: '',
@@ -73,6 +69,39 @@ const LoanEligibilityForm = () => {
     loan_percent_income: '',
     cred_hist_len: '',
   });
+
+  // Fetch existing loan application data
+  useEffect(() => {
+    const fetchLoanApplication = async () => {
+      try {
+        const response = await fetch('/api/user/loan-application', {
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            setFormData((prevData) => ({
+              ...prevData,
+              ...data,
+            }));
+
+            if (data.eligibilityScore !== undefined) {
+              setResult({
+                prob_eligible: data.eligibilityScore / 100,
+                prob_not_eligible: 1 - data.eligibilityScore / 100,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching loan application:', error);
+        setError('Failed to load existing application data');
+      }
+    };
+
+    fetchLoanApplication();
+  }, []);
 
   const calculateLoanPercentIncome = () => {
     const loanAmount = parseFloat(formData.loan_amnt);
@@ -88,6 +117,27 @@ const LoanEligibilityForm = () => {
     }));
   };
 
+  const saveLoanApplication = async (data) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch('/api/user/loan-application', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save application data');
+      }
+    } catch (error) {
+      console.error('Error saving application:', error);
+      setError('Failed to save application data');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     setError(null);
@@ -99,17 +149,25 @@ const LoanEligibilityForm = () => {
         loan_percent_income: calculatedPercentIncome,
       };
 
-      const response = await fetch('https://deploy-api-17es.onrender.com/predict', {
+      const eligibilityResponse = await fetch('https://deploy-api-17es.onrender.com/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData),
       });
 
-      if (!response.ok) throw new Error('Failed to check eligibility');
+      if (!eligibilityResponse.ok) {
+        throw new Error('Failed to check eligibility');
+      }
 
-      const data = await response.json();
-      console.log('API Response:', data); // For debugging
-      setResult(data);
+      const eligibilityData = await eligibilityResponse.json();
+      setResult(eligibilityData);
+
+      await saveLoanApplication({
+        ...requestData,
+        status: 'submitted',
+        eligibilityScore: eligibilityData.prob_eligible * 100,
+      });
+
       setStep(3);
     } catch (err) {
       setError(err.message);
@@ -317,7 +375,7 @@ const LoanEligibilityForm = () => {
 
             <button
               onClick={() => navigate(isEligible ? '/user/verification' : '/user/analysis')}
-              className={`w-full py-3 px-4 rounded-lg text-white transition-colors ${
+              className={`w-full py-3 px-4 cursor-pointer rounded-lg text-white transition-colors ${
                 isEligible ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'
               }`}
             >
@@ -327,6 +385,17 @@ const LoanEligibilityForm = () => {
         </div>
       </div>
     );
+  };
+
+  // Handle step changes with auto-save
+  const handleStepChange = async (newStep) => {
+    if (step < newStep) {
+      await saveLoanApplication({
+        ...formData,
+        status: 'draft',
+      });
+    }
+    setStep(newStep);
   };
 
   return (
@@ -370,8 +439,8 @@ const LoanEligibilityForm = () => {
         <div className="mt-8 flex justify-between">
           {step > 1 && (
             <button
-              onClick={() => setStep(step - 1)}
-              className="flex items-center px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
+              onClick={() => handleStepChange(step - 1)}
+              className="flex cursor-pointer items-center px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg"
             >
               <ChevronLeft className="h-5 w-5 mr-2" />
               Previous
@@ -384,17 +453,17 @@ const LoanEligibilityForm = () => {
                 if (step === 2) {
                   handleSubmit();
                 } else {
-                  setStep(step + 1);
+                  handleStepChange(step + 1);
                 }
               }}
-              disabled={isLoading}
-              className={`flex items-center px-6 py-3 rounded-lg ml-auto ${
-                isLoading
+              disabled={isLoading || isSaving}
+              className={`flex items-center cursor-pointer px-6 py-3 rounded-lg ml-auto ${
+                isLoading || isSaving
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {isLoading ? (
+              {isLoading || isSaving ? (
                 <div className="flex items-center">
                   <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <circle
@@ -411,7 +480,7 @@ const LoanEligibilityForm = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Processing...
+                  {isSaving ? 'Saving...' : 'Processing...'}
                 </div>
               ) : (
                 <>

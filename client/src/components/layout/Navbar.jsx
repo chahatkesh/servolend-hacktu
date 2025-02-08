@@ -106,7 +106,7 @@ const Navbar = () => {
                 <div className="flex items-center space-x-1">
                   {[
                     { path: '/user/apply', icon: FileText, label: 'Applications' },
-                    { path: '/calculator', icon: Calculator, label: 'Tax Calculator' },
+                    { path: '/user/calculator', icon: Calculator, label: 'Tax Calculator' },
                     { path: '/user/dashboard', icon: Building2, label: 'Dashboard' },
                   ].map(({ path, icon: Icon, label }) => (
                     <Link
@@ -253,7 +253,7 @@ const Navbar = () => {
             <>
               {[
                 { path: '/user/applications', icon: FileText, label: 'Applications' },
-                { path: '/calculator', icon: Calculator, label: 'Tax Calculator' },
+                { path: '/user/calculator', icon: Calculator, label: 'Tax Calculator' },
                 { path: '/user/dashboard', icon: Building2, label: 'Dashboard' },
                 { path: '/user', icon: User, label: 'Profile' },
               ].map(({ path, icon: Icon, label }) => (
