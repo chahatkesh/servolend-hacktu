@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:servolend_ai/components/my_drawer.dart';
+import 'package:servolend_ai/components/my_textfield.dart';
+import 'package:servolend_ai/helpers/fetch.dart';
 
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,11 +15,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Map<String, dynamic>? profile;
+  Map<String, dynamic>? fetchedProfile = {};
   bool isEditing = false;
-  final TextEditingController fullNameController =
-      TextEditingController(text: "Jagjit Singh");
-  final TextEditingController emailController =
-      TextEditingController(text: "jagjit0306@gmail.com");
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController occupationController = TextEditingController();
@@ -29,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadProfileImage();
+    retrieveData();
   }
 
   Future<void> _loadProfileImage() async {
@@ -44,8 +46,47 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> retrieveData() async {
+    final Map<String, dynamic> response = await fetch(
+        "https://servolend-server.onrender.com/api/user/profile", {}, "GET");
+    if (response.isNotEmpty) {
+      print(jsonEncode(response));
+      setState(() {
+        fetchedProfile = response;
+      });
+      fullNameController.text = response['name']?.toString() ?? "";
+      emailController.text = response['email']?.toString() ?? "";
+      creditScoreController.text = response['creditScore']?.toString() ?? "";
+      phoneController.text = response['phone'] ?? "";
+      addressController.text = response['address'] ?? "";
+      occupationController.text = response['occupation'] ?? "";
+      employerController.text = response['employerName'] ?? "";
+      incomeController.text = response['monthlyIncome'] ?? "";
+    }
+  }
+
+  Future<void> saveNewData() async {
+    await fetch(
+      "https://servolend-server.onrender.com/api/user/profile",
+      {
+        "name": fullNameController.text,
+        "phone": phoneController.text,
+        "address": addressController.text,
+        "occupation": occupationController.text,
+        "employerName": employerController.text,
+        "monthlyIncome": incomeController.text,
+        "creditScore": creditScoreController.text,
+        "preferredLanguage": "English",
+        "communicationPreferences": [],
+      },
+      "PUT",
+    );
+    await retrieveData();
+  }
+
   @override
   Widget build(BuildContext context) {
+    bool incomplete = fetchedProfile!['profileStatus'] != "complete";
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -57,6 +98,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Center(
         child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -77,6 +119,22 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               const SizedBox(height: 20),
+              if (profile != null && profile!.isNotEmpty)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: incomplete ? Color(0xFFfdf9c8) : Color(0xFFe2fbe8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    (incomplete ? "Profile Incomplete" : "Profile Complete"),
+                    style: TextStyle(
+                      color: incomplete ? Color(0xFFc68a08) : Color(0xFF3ea34b),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
@@ -96,31 +154,80 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                        "Personal Information",
-                        style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Personal Information",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: Icon(isEditing ? Icons.check : Icons.edit),
+                            onPressed: () {
+                              setState(() {
+                                if (isEditing) saveNewData();
+                                isEditing = !isEditing;
+                              });
+                            },
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
-                      GridView.count(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 8, // Decreased vertical spacing
+                      ListView(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         children: [
-                        buildTextField("Full Name", fullNameController),
-                        buildTextField("Email Address", emailController),
-                        buildTextField("Phone Number", phoneController),
-                        buildTextField("Address", addressController),
-                        buildTextField("Occupation", occupationController),
-                        buildTextField("Employer Name", employerController),
-                        buildTextField("Monthly Income", incomeController),
-                        buildTextField("Credit Score", creditScoreController),
+                          MyTextfield(
+                            hintText: "Full Name",
+                            enabled: false,
+                            controller: fullNameController,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Email Address",
+                            enabled: false,
+                            controller: emailController,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Phone Number",
+                            controller: phoneController,
+                            enabled: isEditing,
+                            inputType: TextInputType.phone,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Address",
+                            controller: addressController,
+                            enabled: isEditing,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Occupation",
+                            controller: occupationController,
+                            enabled: isEditing,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Employer Name",
+                            controller: employerController,
+                            enabled: isEditing,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Monthly Income",
+                            inputType: TextInputType.number,
+                            enabled: isEditing,
+                            controller: incomeController,
+                            onChanged: (v) {},
+                          ),
+                          MyTextfield(
+                            hintText: "Credit Score",
+                            inputType: TextInputType.number,
+                            enabled: isEditing,
+                            controller: creditScoreController,
+                            onChanged: (v) {},
+                          ),
                         ],
                       ),
                     ],
@@ -132,31 +239,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       drawer: MyDrawer(),
-    );
-  }
-
-  Widget buildTextField(String label, TextEditingController controller) {
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        ),
-        TextField(
-          controller: controller,
-          enabled: isEditing,
-          decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          ),
-        ),
-        ],
-      ),
     );
   }
 }

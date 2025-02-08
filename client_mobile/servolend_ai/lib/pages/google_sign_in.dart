@@ -57,7 +57,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
       print(jsonEncode(response));
       saveInfo(response);
       // ignore: use_build_context_synchronously
-      Navigator.pushNamed(context, '/home');
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (Route<dynamic> route) => false);
     }
   }
 
@@ -114,7 +114,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen>
         if (response != null) {
           print(jsonEncode(response));
           saveInfo(response);
-          Navigator.pushNamed(context, "/home");
+            Navigator.pushNamedAndRemoveUntil(context, '/home', (Route<dynamic> route) => false);
         }
       } else {
         print("ERROR XYZZ");
