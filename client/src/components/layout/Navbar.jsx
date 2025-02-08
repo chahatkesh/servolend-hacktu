@@ -12,6 +12,7 @@ import {
   Building2,
   ChevronDown,
   Bell,
+  ExternalLink,
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -196,26 +197,36 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {['About', 'Contact'].map((label) => (
-                  <Link
-                    key={label}
-                    to={`/${label.toLowerCase()}`}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isCurrentPage(`/${label.toLowerCase()}`)
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
-                    }`}
-                    aria-current={isCurrentPage(`/${label.toLowerCase()}`) ? 'page' : undefined}
-                  >
-                    {label}
-                  </Link>
-                ))}
-                <Link
-                  to="/login"
-                  className="ml-2 px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm hover:shadow-md font-medium"
-                >
-                  Login
-                </Link>
+                {/* Enhanced pre-login navigation */}
+                <div className="flex items-center space-x-6">
+                  {[
+                    { path: '/about', label: 'About', icon: Building2 },
+                    { path: '/contact', label: 'Contact', icon: ExternalLink },
+                  ].map(({ path, label, icon: Icon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        isCurrentPage(path)
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-600 hover:text-blue-600'
+                      }`}
+                      aria-current={isCurrentPage(path) ? 'page' : undefined}
+                    >
+                      <Icon className="h-5 w-5 group-hover:text-blue-600 transition-colors" />
+                      <span className="font-medium">{label}</span>
+                    </Link>
+                  ))}
+                  <div className="pl-6 border-l border-gray-200">
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center px-6 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm hover:shadow-md font-medium space-x-2"
+                    >
+                      <User className="h-5 w-5" />
+                      <span>Login</span>
+                    </Link>
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -281,25 +292,30 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              {['About', 'Contact'].map((label) => (
+              {[
+                { path: '/about', label: 'About', icon: Building2 },
+                { path: '/contact', label: 'Contact', icon: ExternalLink },
+              ].map(({ path, label, icon: Icon }) => (
                 <Link
-                  key={label}
-                  to={`/${label.toLowerCase()}`}
-                  className={`block px-3 py-2 rounded-lg transition-all duration-200 ${
-                    isCurrentPage(`/${label.toLowerCase()}`)
+                  key={path}
+                  to={path}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    isCurrentPage(path)
                       ? 'bg-blue-50 text-blue-600'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
                   } font-medium`}
-                  aria-current={isCurrentPage(`/${label.toLowerCase()}`) ? 'page' : undefined}
+                  aria-current={isCurrentPage(path) ? 'page' : undefined}
                 >
-                  {label}
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
                 </Link>
               ))}
               <Link
                 to="/login"
-                className="block px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium text-center"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-medium"
               >
-                Login
+                <User className="h-5 w-5" />
+                <span>Login</span>
               </Link>
             </>
           )}

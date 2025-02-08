@@ -12,6 +12,8 @@ import AdminLayout from './components/admin/AdminLayout';
 // User routes
 import Home from './pages/Home';
 import Login from './pages/Login';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 import UserDashboard from './pages/user/UserDashboard';
 import LoanApplication from './pages/user/LoanApplication';
@@ -37,6 +39,8 @@ const App = () => {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
 
