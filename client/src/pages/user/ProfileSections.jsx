@@ -3,17 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { api } from '../../services/api';
-import {
-  Edit2,
-  Key,
-  ChevronRight,
-  Lock,
-  CreditCard,
-  FileText,
-  AlertCircle,
-  Mail,
-  Phone,
-} from 'lucide-react';
+import { Edit2, ChevronRight, CreditCard, FileText, AlertCircle, Mail, Phone } from 'lucide-react';
 
 // PersonalInfoSection Component
 export const PersonalInfoSection = ({
@@ -329,56 +319,6 @@ export const PreferencesSection = ({
   );
 };
 
-// SecuritySection Component
-export const SecuritySection = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="bg-white rounded-2xl shadow-lg p-6"
-    >
-      <h2 className="text-xl font-semibold mb-6">Security Settings</h2>
-
-      <div className="space-y-6">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Key className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Change Password</p>
-              <p className="text-sm text-gray-500">Update your account password</p>
-            </div>
-          </div>
-          <ChevronRight className="h-5 w-5 text-gray-400" />
-        </motion.div>
-
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center justify-between p-4 bg-gray-50 rounded-xl cursor-pointer"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Lock className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Two-Factor Authentication</p>
-              <p className="text-sm text-gray-500">Add extra security to your account</p>
-            </div>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" />
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-          </label>
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-};
-
 // SidePanel Component
 export const SidePanel = ({ profile }) => {
   return (
@@ -490,6 +430,5 @@ export default {
   PersonalInfoSection,
   DocumentsSection,
   PreferencesSection,
-  SecuritySection,
   SidePanel,
 };

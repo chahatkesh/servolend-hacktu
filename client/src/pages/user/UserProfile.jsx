@@ -13,7 +13,6 @@ import {
   PersonalInfoSection,
   DocumentsSection,
   PreferencesSection,
-  SecuritySection,
   SidePanel,
 } from './ProfileSections';
 
@@ -297,7 +296,6 @@ const UserProfile = () => {
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'security', label: 'Security', icon: Shield },
     { id: 'preferences', label: 'Preferences', icon: Bell },
   ];
 
@@ -341,7 +339,7 @@ const UserProfile = () => {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`flex items-center px-6 py-3 rounded-xl transition-all ${
+            className={`flex cursor-pointer items-center px-6 py-3 rounded-xl transition-all ${
               activeTab === tab.id
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -369,8 +367,6 @@ const UserProfile = () => {
           )}
 
           {activeTab === 'documents' && <DocumentsSection />}
-
-          {activeTab === 'security' && <SecuritySection />}
 
           {activeTab === 'preferences' && (
             <PreferencesSection
