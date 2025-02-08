@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:servolend_ai/helpers/fetch.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GoogleSignInScreen extends StatefulWidget {
   const GoogleSignInScreen({super.key});
@@ -14,6 +16,17 @@ class GoogleSignInScreen extends StatefulWidget {
 }
 
 class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
+  late SharedPreferences _prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSharedPreferences();
+  }
+
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
   // Future<UserCredential?> signInWithGoogle(BuildContext context) async {
   //   print("SIGNING IN");
   //   try {
@@ -41,42 +54,97 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
   //   }
   // }
 
-Future<void> signInWithGoogle(BuildContext context) async {
-  debugPrint("SIGNING IN");
+  Future<void> sendPostRequest(String v) async {
+    final url = Uri.parse(
+        "https://servolend-server.onrender.com/api/auth/google"); // API endpoint
+    final headers = {"Content-Type": "application/json"}; // Set headers
+    final body = jsonEncode({"credential": v}); // JSON-encoded body
 
-  final GoogleSignIn googleSignIn = GoogleSignIn(
-    clientId:
-        "",
-  );
+    try {
+      final response = await http.post(url, headers: headers, body: body);
 
-  final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-  if (googleUser != null) {
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    final Map<String, String> credentials = {
-      "idToken": googleAuth.idToken ?? "",
-      "accessToken": googleAuth.accessToken ?? "",
-    };
-
-    debugPrint("CREDENTIALS: ${jsonEncode(credentials)}");
-
-    final response = await http.post(
-      Uri.parse("https://"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(credentials),
-    );
-
-    if (response.statusCode == 200) {
-      debugPrint("LOGIN SUCCESS: ${response.body}");
-    } else {
-      debugPrint("LOGIN FAILED: ${response.statusCode} - ${response.body}");
+      if (response.statusCode == 200) {
+        print("Success: ${response.body}");
+      } else {
+        print("Failed with status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error: $e");
     }
   }
 
-  debugPrint("FINISHING LOGIN");
-}
+  void saveInfo(Map<String, dynamic> d) {
+    _prefs.setString("account", jsonEncode(d));
+  }
 
+  Future<void> signInWithGoogle(BuildContext context) async {
+    debugPrint("SIGNING IN");
+
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId:
+          "1050145168673-pglcbe7c6but4tb4r2u2bdkflmp8km9i.apps.googleusercontent.com",
+    );
+    try {
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser != null) {
+        print("RESPONSE RECEIVED XYZZ");
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        final Map<String, String> credentials = {
+          "idToken": googleAuth.idToken ?? "",
+          "accessToken": googleAuth.accessToken ?? "",
+        };
+
+        debugPrint("CREDENTIALS: ${jsonEncode(credentials['idToken'])}");
+        print("SENDING FETCH");
+        final response = await fetch(
+          "https://servolend-server.onrender.com/api/auth/google",
+          {"credential": credentials['idToken']},
+          "POST",
+        );
+        if (response != null) {
+          // print(jsonEncode(response));
+          saveInfo(response);
+          Navigator.pushNamed(context, "/home");
+        }
+        // await sendPostRequest(credentials['idToken']!);
+        // final response = await http.post(
+        //   Uri.parse("http://172.16.72.231:3000/api/auth/google"),
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Accept': 'application/json',
+        //   },
+        //   body: jsonEncode({'credential': credentials['idToken']}),
+        // );
+
+        // if (response.statusCode == 200) {
+        //   debugPrint("LOGIN SUCCESS: ${response.body}");
+        // } else {
+        //   debugPrint("LOGIN FAILED: ${response.statusCode} - ${response.body}");
+        // }
+      } else {
+        print("ERROR XYZZ");
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    debugPrint("FINISHING LOGIN");
+  }
+
+  // final response = await http.post(
+  //   Uri.parse("https://"),
+  //   Uri.parse("YOUR_BACKEND_ENDPOINT_HERE"),
+  //   body: jsonEncode(credentials),
+  // );
+
+  // if (response.statusCode == 200) {
+  //   debugPrint("LOGIN SUCCESS: ${response.body}");
+  // } else {
+  //   debugPrint("LOGIN FAILED: ${response.statusCode} - ${response.body}");
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +186,7 @@ Future<void> signInWithGoogle(BuildContext context) async {
                   try {
                     // UserCredential? userCredential =
                     //     await signInWithGoogle(context);
-                    await signInWithGoogle(context);
+                    signInWithGoogle(context);
 
                     // if (userCredential == null || userCredential.user == null) {
                     //   if (context.mounted) {

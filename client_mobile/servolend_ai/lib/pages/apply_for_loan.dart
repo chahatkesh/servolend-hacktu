@@ -333,7 +333,7 @@ class _Page3State extends State<Page3> {
     final Map<String, dynamic> res = await fetch(
       'https://deploy-api-17es.onrender.com/predict',
       finalObject,
-      method: "post",
+      "post",
     );
     if (res.isNotEmpty) {
       setState(() {
@@ -356,8 +356,6 @@ class _Page3State extends State<Page3> {
           children: [
             if (result.isNotEmpty) ...[
               const SizedBox(height: 16),
-              // const Text("Eligibility Probability",
-            // style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               SizedBox(
           height: 200,
