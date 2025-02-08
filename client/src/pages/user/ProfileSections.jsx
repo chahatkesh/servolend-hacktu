@@ -23,6 +23,17 @@ export const PersonalInfoSection = ({
   handleProfileUpdate,
   setIsEditing,
 }) => {
+  const getCreditScoreRange = (score) => {
+    const numScore = Number(score);
+    if (!numScore) return null;
+    if (numScore >= 800) return { text: 'Excellent credit', color: 'text-green-600' };
+    if (numScore >= 740) return { text: 'Very good credit', color: 'text-emerald-500' };
+    if (numScore >= 670) return { text: 'Good credit', color: 'text-blue-500' };
+    if (numScore >= 580) return { text: 'Fair credit', color: 'text-yellow-500' };
+    if (numScore >= 300) return { text: 'Poor credit', color: 'text-red-500' };
+    return null;
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
       <div className="flex justify-between items-center mb-6">
@@ -127,16 +138,28 @@ export const PersonalInfoSection = ({
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Credit Score</label>
-          <input
-            type="text"
-            name="creditScore"
-            value={profile.creditScore || ''}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              name="creditScore"
+              value={profile.creditScore || ''}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+            />
+            {profile.creditScore && getCreditScoreRange(profile.creditScore) && (
+              <div
+                className={`absolute right-2 bottom-2 text-xs ${
+                  getCreditScoreRange(profile.creditScore).color
+                }`}
+              >
+                {getCreditScoreRange(profile.creditScore).text}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
