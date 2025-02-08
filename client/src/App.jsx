@@ -19,6 +19,7 @@ import LoanRepayment from './pages/user/LoanRepayment';
 import TransactionHistory from './pages/user/TransactionHistory';
 import UserProfile from './pages/user/UserProfile';
 import Settings from './pages/user/UserSettings';
+import DocumentVerify from './pages/user/DocumentVerification';
 
 // Admin routes
 import AdminLogin from './pages/admin/AdminLogin';
@@ -50,6 +51,7 @@ const App = () => {
             >
               <Route index element={<UserProfile />} />
               <Route path="apply" element={<LoanApplication />} />
+              <Route path="verification" element={<DocumentVerify />} />
               <Route path="repayments" element={<LoanRepayment />} />
               <Route path="transactions" element={<TransactionHistory />} />
               <Route path="dashboard" element={<UserDashboard />} />

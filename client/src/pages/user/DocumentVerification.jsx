@@ -2,9 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  FileText, Upload, Check, AlertTriangle, 
-  X, Clock, Shield, ArrowRight, Info 
+import {
+  FileText,
+  Upload,
+  Check,
+  AlertTriangle,
+  X,
+  Clock,
+  Shield,
+  ArrowRight,
+  Info,
 } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -21,29 +28,29 @@ const DocumentVerification = () => {
       title: 'PAN Card',
       description: 'Clear copy of your PAN card (front side)',
       format: '.jpg, .jpeg, .png, .pdf',
-      maxSize: '5MB'
+      maxSize: '5MB',
     },
     {
       type: 'AADHAR_CARD',
       title: 'Aadhar Card',
       description: 'Both front and back side in a single file',
       format: '.jpg, .jpeg, .png, .pdf',
-      maxSize: '5MB'
+      maxSize: '5MB',
     },
     {
       type: 'INCOME_PROOF',
       title: 'Income Proof',
       description: 'Last 3 months salary slips or Form 16',
       format: '.pdf',
-      maxSize: '10MB'
+      maxSize: '10MB',
     },
     {
       type: 'BANK_STATEMENT',
       title: 'Bank Statement',
       description: 'Last 6 months bank statement in PDF format',
       format: '.pdf',
-      maxSize: '10MB'
-    }
+      maxSize: '10MB',
+    },
   ];
 
   useEffect(() => {
@@ -55,14 +62,15 @@ const DocumentVerification = () => {
       setIsLoading(true);
       const response = await api.get('/user/profile');
       // Extract documents from user profile
-      const userDocs = response.documents?.reduce((acc, doc) => {
-        acc[doc.name] = {
-          status: doc.status,
-          uploadedAt: doc.uploadDate,
-          rejectionReason: doc.rejectionReason
-        };
-        return acc;
-      }, {}) || {};
+      const userDocs =
+        response.documents?.reduce((acc, doc) => {
+          acc[doc.name] = {
+            status: doc.status,
+            uploadedAt: doc.uploadDate,
+            rejectionReason: doc.rejectionReason,
+          };
+          return acc;
+        }, {}) || {};
       setDocuments(userDocs);
     } catch (err) {
       console.error('Error loading documents:', err);
@@ -83,10 +91,10 @@ const DocumentVerification = () => {
     }
 
     // Validate file type
-    const validTypes = docType.includes('PDF_ONLY') 
+    const validTypes = docType.includes('PDF_ONLY')
       ? ['application/pdf']
       : ['application/pdf', 'image/jpeg', 'image/png'];
-    
+
     if (!validTypes.includes(file.type)) {
       setError('Invalid file type. Please upload in the correct format.');
       return;
@@ -101,7 +109,7 @@ const DocumentVerification = () => {
       formData.append('documentType', docType);
 
       await api.post('/api/user/documents/upload', formData);
-      
+
       setSuccessMessage('Document uploaded successfully');
       await loadDocuments();
 
@@ -120,7 +128,7 @@ const DocumentVerification = () => {
   };
 
   const allDocumentsVerified = requiredDocuments.every(
-    doc => getDocumentStatus(doc.type) === 'VERIFIED'
+    (doc) => getDocumentStatus(doc.type) === 'VERIFIED'
   );
 
   const getStatusColor = (status) => {
@@ -166,20 +174,21 @@ const DocumentVerification = () => {
         {/* Progress Bar */}
         <div className="mt-6">
           <div className="flex justify-between mb-2">
+            <span className="text-sm font-medium text-gray-600">Overall Progress</span>
             <span className="text-sm font-medium text-gray-600">
-              Overall Progress
-            </span>
-            <span className="text-sm font-medium text-gray-600">
-              {Object.values(documents).filter(d => d.status === 'VERIFIED').length}/
+              {Object.values(documents).filter((d) => d.status === 'VERIFIED').length}/
               {requiredDocuments.length} Verified
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
+            <div
               className="bg-blue-600 rounded-full h-2.5 transition-all duration-500"
-              style={{ 
-                width: `${(Object.values(documents).filter(d => d.status === 'VERIFIED').length / 
-                  requiredDocuments.length) * 100}%` 
+              style={{
+                width: `${
+                  (Object.values(documents).filter((d) => d.status === 'VERIFIED').length /
+                    requiredDocuments.length) *
+                  100
+                }%`,
               }}
             />
           </div>
@@ -188,7 +197,7 @@ const DocumentVerification = () => {
 
       {/* Alerts */}
       {error && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200"
@@ -201,7 +210,7 @@ const DocumentVerification = () => {
       )}
 
       {successMessage && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200"
@@ -217,7 +226,7 @@ const DocumentVerification = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {requiredDocuments.map((doc) => {
           const status = getDocumentStatus(doc.type);
-          
+
           return (
             <motion.div
               key={doc.type}
@@ -236,7 +245,11 @@ const DocumentVerification = () => {
                     </div>
                   </div>
                   {status !== 'NOT_UPLOADED' && (
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${getStatusColor(status)}`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${getStatusColor(
+                        status
+                      )}`}
+                    >
                       {getStatusIcon(status)}
                       <span className="ml-2">{status.replace('_', ' ')}</span>
                     </span>
@@ -271,9 +284,7 @@ const DocumentVerification = () => {
                   <div className="mt-3 p-3 bg-red-50 rounded-lg">
                     <div className="flex">
                       <Info className="h-5 w-5 text-red-400 mr-2" />
-                      <p className="text-sm text-red-700">
-                        {documents[doc.type].rejectionReason}
-                      </p>
+                      <p className="text-sm text-red-700">{documents[doc.type].rejectionReason}</p>
                     </div>
                   </div>
                 )}
@@ -285,7 +296,7 @@ const DocumentVerification = () => {
 
       {/* Action Button */}
       {allDocumentsVerified && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-8 flex justify-center"
