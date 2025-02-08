@@ -26,14 +26,14 @@ export const AdminAuthProvider = ({ children }) => {
   const handleAdminLogin = async (credentials) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // In a real app, this would be an API call
       if (credentials.id === 'test01' && credentials.password === 'test@ccs') {
         const adminData = {
           id: 'test01',
-          name: 'Test Officer',
-          role: 'loan_officer'
+          name: 'Test Admin',
+          role: 'loan_officer',
         };
         setAdmin(adminData);
         localStorage.setItem('adminData', JSON.stringify(adminData));
@@ -78,14 +78,10 @@ export const AdminAuthProvider = ({ children }) => {
     handleAdminLogin,
     handleAdminLogout,
     checkAdminAuthStatus,
-    isAdminAuthenticated: !!admin
+    isAdminAuthenticated: !!admin,
   };
 
-  return (
-    <AdminAuthContext.Provider value={value}>
-      {children}
-    </AdminAuthContext.Provider>
-  );
+  return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 };
 
 export const useAdminAuth = () => {
