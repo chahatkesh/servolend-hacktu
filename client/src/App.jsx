@@ -9,12 +9,17 @@ import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
 import Layout from './components/layout/Layout';
 import AdminLayout from './components/admin/AdminLayout';
 
-// User routes
+// Public routes
 import Home from './pages/Home';
 import Login from './pages/Login';
+<<<<<<< HEAD
 import About from './pages/About';
 import Contact from './pages/Contact';
+=======
+import AdminLogin from './pages/AdminLogin';
+>>>>>>> 4d0537ae3492b3a5866bb436ed2f6147755a87f9
 
+// User routes
 import UserDashboard from './pages/user/UserDashboard';
 import LoanApplication from './pages/user/LoanApplication';
 import TaxCalculator from './pages/user/TaxCalculator';
@@ -22,14 +27,13 @@ import UserProfile from './pages/user/UserProfile';
 import Settings from './pages/user/UserSettings';
 import DocumentVerify from './pages/user/DocumentVerification';
 import UserNotification from './pages/user/UserNotification';
+import UserAnalysis from './pages/user/UserAnalysis';
 
 // Admin routes
-import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ApplicationReview from './pages/admin/ApplicationReview';
-import DocumentVerification from './pages/admin/DocumentVerification';
 import LoanAssesment from './pages/admin/LoanAssesment';
-import UserAnalysis from './pages/user/UserAnalysis';
+import UserList from './pages/admin/UserList';
 
 const App = () => {
   return (
@@ -75,8 +79,8 @@ const App = () => {
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="applications" element={<ApplicationReview />} />
-              <Route path="verification" element={<DocumentVerification />} />
               <Route path="assessment" element={<LoanAssesment />} />
+              <Route path="userlist" element={<UserList />} />
             </Route>
 
             {/* Fallback route */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAdminAuth } from '../../context/AdminAuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { Lock, User, Shield } from 'lucide-react';
 
 const AdminLogin = () => {
@@ -19,7 +19,7 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <motion.div 
+      <motion.div
         className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -29,15 +29,13 @@ const AdminLogin = () => {
           <div className="mx-auto h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
             <Shield className="h-8 w-8 text-blue-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Loan Officer Portal
-          </h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Loan Officer Portal</h2>
           <p className="mt-2 text-sm text-gray-600">
             Access your dashboard to manage loan applications
           </p>
         </div>
 
-        <motion.form 
+        <motion.form
           className="mt-8 space-y-6"
           onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 20 }}

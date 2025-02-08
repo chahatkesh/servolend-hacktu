@@ -354,61 +354,67 @@ class _Page3State extends State<Page3> {
           mainAxisSize: MainAxisSize.max,
           spacing: 8,
           children: [
+            if (result.isEmpty) ...[
+              const SizedBox(height: 150),
+              CircularProgressIndicator(),
+              const SizedBox(height: 200),
+            ],
             if (result.isNotEmpty) ...[
               const SizedBox(height: 16),
               const SizedBox(height: 16),
               SizedBox(
-          height: 200,
-          child: PieChart(
-            dataMap: {
-              "Eligible": result['prob_eligible'],
-              "Not Eligible": result['prob_not_eligible'],
-            },
-            colorList: [Colors.blue, Colors.grey],
-            chartType: ChartType.ring,
-            ringStrokeWidth: 32,
-            chartValuesOptions: const ChartValuesOptions(
-              showChartValuesInPercentage: true,
-              showChartValuesOutside: true,
-            ),
-            legendOptions: const LegendOptions(
-              showLegends: true,
-              legendPosition: LegendPosition.bottom,
-            ),
-          ),
+                height: 200,
+                child: PieChart(
+                  dataMap: {
+                    "Eligible": result['prob_eligible'],
+                    "Not Eligible": result['prob_not_eligible'],
+                  },
+                  colorList: [Colors.blue, Colors.grey],
+                  chartType: ChartType.ring,
+                  ringStrokeWidth: 32,
+                  chartValuesOptions: const ChartValuesOptions(
+                    showChartValuesInPercentage: true,
+                    showChartValuesOutside: true,
+                  ),
+                  legendOptions: const LegendOptions(
+                    showLegends: true,
+                    legendPosition: LegendPosition.bottom,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Text(
-              (result['prob_eligible'] >= 0.5)
-                ? "You meet the eligibility criteria for the loan."
-                : "You do not meet the eligibility criteria for the loan.",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-              "Your eligibility score is ${(result['prob_eligible'] * 100).toStringAsFixed(2)}%",
-              style: const TextStyle(fontSize: 16),
-              ),
-            ],
-          ),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      (result['prob_eligible'] >= 0.5)
+                          ? "You meet the eligibility criteria for the loan."
+                          : "You do not meet the eligibility criteria for the loan.",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Your eligibility score is ${(result['prob_eligible'] * 100).toStringAsFixed(2)}%",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ],
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-          ElevatedButton(
-            onPressed: widget.back,
-            child: const Text("Back"),
-          ),
+                ElevatedButton(
+                  onPressed: widget.back,
+                  child: const Text("Back"),
+                ),
               ],
             ),
           ],

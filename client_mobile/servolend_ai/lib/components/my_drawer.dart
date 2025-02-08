@@ -14,12 +14,18 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.grey.shade200,
       child: Column(
         children: <Widget>[
           DrawerHeader(
-            child: Text('Menu'),
             decoration: BoxDecoration(
-              color: Colors.blue,
+                // color: Colors.blue,
+                ),
+            child: Center(
+              child: Text(
+                'ServoLend Dashboard',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ),
           ListTile(
@@ -42,11 +48,11 @@ class MyDrawer extends StatelessWidget {
             title: Text('Logout'),
             onTap: () {
               logoutNow();
-                Navigator.pushAndRemoveUntil(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => GoogleSignInScreen()),
                 (Route<dynamic> route) => false,
-                );
+              );
               // Implement your logout functionality here
             },
           ),

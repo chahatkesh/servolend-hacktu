@@ -1,7 +1,4 @@
-// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
-
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
@@ -15,44 +12,49 @@ class GoogleSignInScreen extends StatefulWidget {
   State<GoogleSignInScreen> createState() => _GoogleSignInScreenState();
 }
 
-class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
+class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTickerProviderStateMixin {
   late SharedPreferences _prefs;
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
     _initializeSharedPreferences();
+
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _colorAnimation = ColorTween(
+      begin: Colors.blue[300],
+      end: Colors.blue[900],
+    ).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
   }
-  // Future<UserCredential?> signInWithGoogle(BuildContext context) async {
-  //   print("SIGNING IN");
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await GoogleSignIn(
-  //     clientId: 'YOUR_CLIENT_ID_HERE',
-  //     serverClientId: 'YOUR_SERVER_CLIENT_ID_HERE',
-  //     ).signIn();
-  //     if (googleUser == null) {
-  //     // User canceled the sign-in
-  //     return null;
-  //     }
 
-  //     final GoogleSignInAuthentication googleAuth =
-  //         await googleUser.authentication;
-  //     final credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
-
-  //     // Sign in to Firebase with the Google credential
-  //     return await FirebaseAuth.instance.signInWithCredential(credential);
-  //   } catch (e) {
-  //     debugPrint("Google Sign-In error: $e");
-  //     return null; // Return null in case of error
-  //   }
-  // }
+  Future<void> getLoginState() async {
+    print("PREPARING AUTO LOGIN");
+    final response = await fetch(
+      "https://servolend-server.onrender.com/api/auth/status",
+      {},
+      "GET",
+    );
+    if (response != null) {
+      print("RESPONSE HAS COME");
+      print(jsonEncode(response));
+    }
+  }
 
   Future<void> sendPostRequest(String v) async {
     final url = Uri.parse(
@@ -105,25 +107,10 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
           "POST",
         );
         if (response != null) {
-          // print(jsonEncode(response));
+          print(jsonEncode(response));
           saveInfo(response);
           Navigator.pushNamed(context, "/home");
         }
-        // await sendPostRequest(credentials['idToken']!);
-        // final response = await http.post(
-        //   Uri.parse("http://172.16.72.231:3000/api/auth/google"),
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Accept': 'application/json',
-        //   },
-        //   body: jsonEncode({'credential': credentials['idToken']}),
-        // );
-
-        // if (response.statusCode == 200) {
-        //   debugPrint("LOGIN SUCCESS: ${response.body}");
-        // } else {
-        //   debugPrint("LOGIN FAILED: ${response.statusCode} - ${response.body}");
-        // }
       } else {
         print("ERROR XYZZ");
       }
@@ -134,139 +121,99 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
     debugPrint("FINISHING LOGIN");
   }
 
-  // final response = await http.post(
-  //   Uri.parse("https://"),
-  //   Uri.parse("YOUR_BACKEND_ENDPOINT_HERE"),
-  //   body: jsonEncode(credentials),
-  // );
-
-  // if (response.statusCode == 200) {
-  //   debugPrint("LOGIN SUCCESS: ${response.body}");
-  // } else {
-  //   debugPrint("LOGIN FAILED: ${response.statusCode} - ${response.body}");
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // LogoComponent(),
-            const SizedBox(height: 48),
-            const Text(
-              'Overcoming challenges together, with AI',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.w600,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  _colorAnimation.value!,
+                  Colors.blue[100]!,
+                ],
               ),
             ),
-            // Image.asset(
-            //   'assets/login_asset.png',
-            //   height: 320,
-            // ),
-            const SizedBox(height: 48),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 1,
+            child: child,
+          );
+        },
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 48),
+                const Text(
+                'ServoLend.ai',
+                style: TextStyle(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w700,
                 ),
-                onPressed: () async {
-                  try {
-                    // UserCredential? userCredential =
-                    //     await signInWithGoogle(context);
-                    signInWithGoogle(context);
-
-                    // if (userCredential == null || userCredential.user == null) {
-                    //   if (context.mounted) {
-                    //     ScaffoldMessenger.of(context).showSnackBar(
-                    //       const SnackBar(
-                    //         content: Text("Sign-in failed. Please try again."),
-                    //       ),
-                    //     );
-                    //   }
-                    //   return;
-                    // }
-
-                    // if (context.mounted) {
-                    //   Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(
-                    //       builder: (context) => ManageLogin(
-                    //         email: userCredential.user!.email,
-                    //       ),
-                    //     ),
-                    //   );
-                    // }
-                  } catch (e) {
-                    debugPrint("Error during sign-in: $e");
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("An error occurred. Please try again."),
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Image.asset(
-                    //   'assets/google_icon.png',
-                    //   height: 24,
-                    // ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Continue with Google',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
+                ),
+                const SizedBox(height: 40),
+                const Text(
+                'For all your AI loan lending needs',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                ),
+              const SizedBox(height: 48),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
+                    elevation: 1,
+                  ),
+                  onPressed: () async {
+                    try {
+                      signInWithGoogle(context);
+                    } catch (e) {
+                      debugPrint("Error during sign-in: $e");
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("An error occurred. Please try again."),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/google_icon.png',
+                        height: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class ManageLogin extends StatefulWidget {
-  final String? email;
-
-  const ManageLogin({super.key, required this.email});
-
-  @override
-  State<ManageLogin> createState() => _ManageLoginState();
-}
-
-class _ManageLoginState extends State<ManageLogin> {
-  bool completed = false;
-  bool onboarding = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: completed
-            ? const Text("Redirecting...")
-            : const CircularProgressIndicator(),
       ),
     );
   }
