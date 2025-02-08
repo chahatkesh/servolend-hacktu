@@ -1,50 +1,70 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:cookie_jar/cookie_jar.dart';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String _encodeQueryParameters(Map<String, dynamic> params) {
-  return params.entries.map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}').join('&');
+  return params.entries
+      .map((e) =>
+          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}')
+      .join('&');
 }
 
+Future<dynamic> fetch(
+    String url, Map<String, dynamic> jsonData, String method) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
 
-Future<dynamic> fetch(String url, Map<String, dynamic> jsonData, String method) async {
-  final cookieJar = CookieJar();
   final uri = Uri.parse(url);
-  // final cookies = await cookieJar.loadForRequest(uri); // Load cookies for the request
   final client = http.Client();
+  final cookiesString = prefs.getString("cookies");
+  final Map<String, dynamic> cookies = cookiesString != null ? jsonDecode(cookiesString) : {};
 
   http.Response response;
+  Map<String, String> headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (cookies.isNotEmpty) {
+    headers['Cookie'] =
+        cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+  }
+
   if (method.toUpperCase() == 'POST') {
     response = await client.post(
       uri,
-      headers: {
-        'Content-Type': 'application/json',
-        // 'Cookie': cookies.map((cookie) => '${cookie.name}=${cookie.value}').join('; '), // Include cookies in the request
-      },
+      headers: headers,
       body: jsonEncode(jsonData),
     );
   } else {
+    print("USING GET METHOD");
     final queryString = _encodeQueryParameters(jsonData);
     final uriWithQuery = Uri.parse('$url?$queryString');
     response = await client.get(
       uriWithQuery,
-      headers: {
-        'Content-Type': 'application/json',
-        // 'Cookie': cookies.map((cookie) => '${cookie.name}=${cookie.value}').join('; '), // Include cookies in the request
-      },
+      headers: headers,
     );
   }
-
-  // Save cookies
-  // final setCookies = response.headers['set-cookie'];
-  // if (setCookies != null) {
-  //   cookieJar.saveFromResponse(uri, setCookies.split(',').map((cookie) => Cookie.fromSetCookieValue(cookie)).toList());
-  // }
-
+  print(response.statusCode);
   if (response.statusCode == 200) {
+    // Save cookies from response
+    final setCookie = response.headers['set-cookie'];
+    if (setCookie != null) {
+      final cookieList = setCookie.split(',');
+      final cookieMap = <String, String>{};
+      for (var cookie in cookieList) {
+        final parts = cookie.split(';')[0].split('=');
+        if (parts.length == 2) {
+          cookieMap[parts[0].trim()] = parts[1].trim();
+        }
+      }
+      prefs.setString("cookies", jsonEncode(cookieMap));
+      // You can now use cookieMap as needed
+      print('Received cookies: $cookieMap');
+    }
     return jsonDecode(response.body);
   } else {
-    throw Exception('Failed to load data');
+    print("!!!!!!!!!!!!!!!!!!!!");
+    print("RESPONSE FAILED");
+    print("!!!!!!!!!!!!!!!!!!!!");
+    return null;
   }
 }

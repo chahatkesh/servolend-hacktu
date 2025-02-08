@@ -12,7 +12,8 @@ class GoogleSignInScreen extends StatefulWidget {
   State<GoogleSignInScreen> createState() => _GoogleSignInScreenState();
 }
 
-class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTickerProviderStateMixin {
+class _GoogleSignInScreenState extends State<GoogleSignInScreen>
+    with SingleTickerProviderStateMixin {
   late SharedPreferences _prefs;
   late AnimationController _controller;
   late Animation<Color?> _colorAnimation;
@@ -21,6 +22,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTick
   void initState() {
     super.initState();
     _initializeSharedPreferences();
+    getLoginState();
 
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
@@ -53,6 +55,9 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTick
     if (response != null) {
       print("RESPONSE HAS COME");
       print(jsonEncode(response));
+      saveInfo(response);
+      // ignore: use_build_context_synchronously
+      Navigator.pushNamed(context, '/home');
     }
   }
 
@@ -146,21 +151,21 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTick
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 48),
-                const Text(
+              const Text(
                 'ServoLend.ai',
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.w700,
                 ),
-                ),
-                const SizedBox(height: 40),
-                const Text(
+              ),
+              const SizedBox(height: 40),
+              const Text(
                 'For all your AI loan lending needs',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
-                ),
+              ),
               const SizedBox(height: 48),
               Container(
                 decoration: BoxDecoration(
@@ -170,8 +175,8 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTick
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -185,7 +190,8 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> with SingleTick
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("An error occurred. Please try again."),
+                            content:
+                                Text("An error occurred. Please try again."),
                           ),
                         );
                       }
