@@ -1,6 +1,8 @@
 // ProfileSections.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { api } from '../../services/api';
 import {
   Edit2,
   Key,
@@ -9,7 +11,6 @@ import {
   CreditCard,
   FileText,
   AlertCircle,
-  UploadCloud,
   Mail,
   Phone,
 } from 'lucide-react';
@@ -167,32 +168,52 @@ export const PersonalInfoSection = ({
 };
 
 // DocumentsSection Component
-export const DocumentsSection = ({ profile, handleDocumentUpload }) => {
-  const documents = [
-    {
-      name: 'PAN Card',
-      status: profile.documents?.find((d) => d.name === 'PAN Card')?.status || 'required',
-    },
-    {
-      name: 'Aadhar Card',
-      status: profile.documents?.find((d) => d.name === 'Aadhar Card')?.status || 'required',
-    },
-    {
-      name: 'Income Proof',
-      status: profile.documents?.find((d) => d.name === 'Income Proof')?.status || 'required',
-    },
-    {
-      name: 'Bank Statement',
-      status: profile.documents?.find((d) => d.name === 'Bank Statement')?.status || 'required',
-    },
-  ];
+export const DocumentsSection = () => {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleFileUpload = async (event, documentType) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      await handleDocumentUpload(file, documentType);
-    }
-  };
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/user/profile');
+        // Transform the documents data to match our display needs
+        const formattedDocs = response.documents.map((doc) => ({
+          name: doc.name,
+          status: doc.status.toLowerCase(),
+          uploadDate: doc.uploadDate,
+          rejectionReason: doc.rejectionReason,
+        }));
+        setDocuments(formattedDocs);
+      } catch (err) {
+        setError('Failed to load documents');
+        console.error('Error fetching documents:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="flex justify-center items-center h-40 text-red-600">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -211,7 +232,7 @@ export const DocumentsSection = ({ profile, handleDocumentUpload }) => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100"
+            className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
           >
             <div className="flex items-center space-x-4">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -222,9 +243,12 @@ export const DocumentsSection = ({ profile, handleDocumentUpload }) => {
                 <p className="text-sm text-gray-500">
                   {doc.uploadDate ? new Date(doc.uploadDate).toLocaleDateString() : 'Not uploaded'}
                 </p>
+                {doc.status === 'rejected' && doc.rejectionReason && (
+                  <p className="text-sm text-red-500 mt-1">Reason: {doc.rejectionReason}</p>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                   doc.status === 'verified'
@@ -238,17 +262,6 @@ export const DocumentsSection = ({ profile, handleDocumentUpload }) => {
               >
                 {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
               </span>
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => handleFileUpload(e, doc.name)}
-                />
-                <div className="p-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                  <UploadCloud className="h-5 w-5 text-blue-600" />
-                </div>
-              </label>
             </div>
           </motion.div>
         ))}

@@ -368,9 +368,7 @@ const UserProfile = () => {
             />
           )}
 
-          {activeTab === 'documents' && (
-            <DocumentsSection profile={profile} handleDocumentUpload={handleDocumentUpload} />
-          )}
+          {activeTab === 'documents' && <DocumentsSection />}
 
           {activeTab === 'security' && <SecuritySection />}
 
