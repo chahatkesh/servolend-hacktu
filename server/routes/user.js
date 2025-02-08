@@ -4,10 +4,10 @@ const router = express.Router();
 const passport = require('passport');
 const multer = require('multer');
 const userController = require('../controllers/userController');
-const { 
-  validateProfileUpdate, 
-  validateDocumentUpdate, 
-  validateKycStatusUpdate 
+const {
+  validateProfileUpdate,
+  validateDocumentUpdate,
+  validateKycStatusUpdate
 } = require('../middleware/validation');
 
 // Configure multer for file uploads
@@ -70,6 +70,10 @@ router.post('/documents/upload',
   handleMulterError,
   userController.uploadDocument
 );
+
+// Loan application routes
+router.get('/loan-application', userController.getLoanApplication);
+router.put('/loan-application', userController.updateLoanApplication);
 
 // KYC status route
 router.put('/kyc-status',

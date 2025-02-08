@@ -28,6 +28,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ApplicationReview from './pages/admin/ApplicationReview';
 import DocumentVerification from './pages/admin/DocumentVerification';
 import LoanAssesment from './pages/admin/LoanAssesment';
+import UserAnalysis from './pages/user/UserAnalysis';
 
 const App = () => {
   return (
@@ -53,6 +54,7 @@ const App = () => {
               <Route path="apply" element={<LoanApplication />} />
               <Route path="verification" element={<DocumentVerify />} />
               <Route path="calculator" element={<TaxCalculator />} />
+              <Route path="analysis" element={<UserAnalysis />} />
               <Route path="transactions" element={<TransactionHistory />} />
               <Route path="notification" element={<UserNotification />} />
               <Route path="dashboard" element={<UserDashboard />} />

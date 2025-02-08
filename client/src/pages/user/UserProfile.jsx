@@ -177,6 +177,7 @@ const UserProfile = () => {
         occupation: profile.occupation?.trim() || '',
         employerName: profile.employerName?.trim() || '',
         monthlyIncome: profile.monthlyIncome?.trim() || '',
+        creditScore: profile.creditScore?.trim() || '',
         preferredLanguage: profile.preferredLanguage || 'English',
         communicationPreferences: profile.communicationPreferences || [],
       };

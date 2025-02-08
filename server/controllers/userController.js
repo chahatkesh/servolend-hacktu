@@ -19,6 +19,70 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+exports.getLoanApplication = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user.loanApplication || {});
+  } catch (error) {
+    console.error('Get loan application error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.updateLoanApplication = async (req, res) => {
+  try {
+    const {
+      age,
+      income,
+      ownership,
+      employment_len,
+      loan_intent,
+      loan_amnt,
+      loan_int_rate,
+      loan_percent_income,
+      cred_hist_len,
+      eligibilityScore,
+      status
+    } = req.body;
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Initialize loanApplication if it doesn't exist
+    if (!user.loanApplication) {
+      user.loanApplication = {};
+    }
+
+    // Update loan application fields
+    Object.assign(user.loanApplication, {
+      age: age || user.loanApplication.age,
+      income: income || user.loanApplication.income,
+      ownership: ownership || user.loanApplication.ownership,
+      employment_len: employment_len || user.loanApplication.employment_len,
+      loan_intent: loan_intent || user.loanApplication.loan_intent,
+      loan_amnt: loan_amnt || user.loanApplication.loan_amnt,
+      loan_int_rate: loan_int_rate || user.loanApplication.loan_int_rate,
+      loan_percent_income: loan_percent_income || user.loanApplication.loan_percent_income,
+      cred_hist_len: cred_hist_len || user.loanApplication.cred_hist_len,
+      status: status || user.loanApplication.status,
+      eligibilityScore: eligibilityScore || user.loanApplication.eligibilityScore,
+      lastUpdated: Date.now()
+    });
+
+    await user.save();
+    res.json(user.loanApplication);
+  } catch (error) {
+    console.error('Update loan application error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
     const {
@@ -28,6 +92,7 @@ exports.updateProfile = async (req, res) => {
       occupation,
       employerName,
       monthlyIncome,
+      creditScore,
       preferredLanguage,
       communicationPreferences
     } = req.body;
@@ -45,6 +110,7 @@ exports.updateProfile = async (req, res) => {
       occupation,
       employerName,
       monthlyIncome,
+      creditScore,
       preferredLanguage,
       communicationPreferences
     });
@@ -144,7 +210,7 @@ exports.uploadDocument = async (req, res) => {
     }
 
     await user.save();
-    res.json({ 
+    res.json({
       message: 'Document uploaded successfully',
       document: docData
     });
@@ -162,7 +228,7 @@ exports.getDocument = async (req, res) => {
   try {
     const { documentType } = req.params;
     const user = await User.findById(req.user.userId);
-    
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

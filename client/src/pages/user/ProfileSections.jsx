@@ -3,12 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Edit2,
-  Shield,
   Key,
-  Bell,
   ChevronRight,
   Lock,
-  User,
   CreditCard,
   FileText,
   AlertCircle,
@@ -125,6 +122,17 @@ export const PersonalInfoSection = ({
             type="text"
             name="monthlyIncome"
             value={profile.monthlyIncome || ''}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Credit Score</label>
+          <input
+            type="text"
+            name="creditScore"
+            value={profile.creditScore || ''}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"

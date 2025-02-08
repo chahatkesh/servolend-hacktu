@@ -123,21 +123,6 @@ const Layout = () => {
         )}
       </div>
 
-      <div className="px-4 py-2">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="flex items-center space-x-3 bg-blue-800/40 p-3 rounded-xl mb-6"
-        >
-          <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-medium shadow-lg flex-shrink-0">
-            {getInitials(user?.name)}
-          </div>
-          <div className="min-w-0">
-            <p className="font-medium text-white truncate">{user?.name || 'Guest User'}</p>
-            <p className="text-blue-100/70 text-sm truncate">{user?.membership || 'Basic'} User</p>
-          </div>
-        </motion.div>
-      </div>
-
       <nav className="px-4 space-y-1 overflow-y-auto max-h-[calc(100vh-280px)]">
         {menuItems.map((item, index) => (
           <MenuItem key={index} item={item} />
