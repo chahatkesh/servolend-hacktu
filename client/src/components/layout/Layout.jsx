@@ -54,7 +54,6 @@ const Layout = () => {
     { icon: Home, label: 'Dashboard', path: '/user/dashboard' },
     { icon: FileText, label: 'Apply For Loan', path: '/user/apply' },
     { icon: Calculator, label: 'Tax Calculator', path: '/user/calculator' },
-    { icon: Activity, label: 'Transactions', path: '/user/transactions' },
     { icon: Bell, label: 'Notifications', path: '/user/notification' },
     { icon: Settings, label: 'Settings', path: '/user/settings' },
   ];

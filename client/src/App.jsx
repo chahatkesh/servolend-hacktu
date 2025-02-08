@@ -16,7 +16,6 @@ import Login from './pages/Login';
 import UserDashboard from './pages/user/UserDashboard';
 import LoanApplication from './pages/user/LoanApplication';
 import TaxCalculator from './pages/user/TaxCalculator';
-import TransactionHistory from './pages/user/TransactionHistory';
 import UserProfile from './pages/user/UserProfile';
 import Settings from './pages/user/UserSettings';
 import DocumentVerify from './pages/user/DocumentVerification';
@@ -55,7 +54,6 @@ const App = () => {
               <Route path="verification" element={<DocumentVerify />} />
               <Route path="calculator" element={<TaxCalculator />} />
               <Route path="analysis" element={<UserAnalysis />} />
-              <Route path="transactions" element={<TransactionHistory />} />
               <Route path="notification" element={<UserNotification />} />
               <Route path="dashboard" element={<UserDashboard />} />
               <Route path="settings" element={<Settings />} />
