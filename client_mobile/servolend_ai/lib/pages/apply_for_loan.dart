@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pie_chart/pie_chart.dart';
 import 'package:servolend_ai/components/my_textfield.dart';
@@ -14,6 +16,7 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
   final PageController _pageController = PageController();
   final Map<String, dynamic> loanInfo = {};
   final Map<String, dynamic> personalDetails = {};
+  Map<String, dynamic> fetchedData = {};
 
   void nextPage() {
     _pageController.nextPage(
@@ -27,6 +30,27 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeIn,
     );
+  }
+
+  Future<void> fetchStuff() async {
+    final Map<String, dynamic> response = await fetch(
+      "https://servolend-server.onrender.com/api/user/profile",
+      {},
+      "GET",
+    );
+    if (response.isNotEmpty) {
+      print(jsonEncode(response));
+      setState(() {
+        fetchedData = response;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchStuff();
   }
 
   @override
@@ -48,6 +72,7 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           Page1(
+            preData: fetchedData,
             next: (loanAmount, interestRate) {
               setState(() {
                 loanInfo['loanAmount'] = loanAmount;
@@ -57,6 +82,7 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
             },
           ),
           Page2(
+            preData: fetchedData,
             next: (age, annualIncome, employmentLength, creditHistoryLength,
                 homeOwnership, loanIntent) {
               setState(() {
@@ -84,9 +110,16 @@ class _ApplyForLoanState extends State<ApplyForLoan> {
 
 class Page1 extends StatelessWidget {
   final Function(int, double) next;
-  Page1({super.key, required this.next});
-  final TextEditingController loanAmountController = TextEditingController();
-  final TextEditingController interestRateController = TextEditingController();
+  Map<String, dynamic>? preData;
+  Page1({super.key, required this.next, required this.preData}) {
+    loanAmountController = TextEditingController(
+        text: preData?["loanApplication"]?["loan_amnt"]?.toString() ?? '');
+  }
+  late final TextEditingController loanAmountController;
+  late final TextEditingController interestRateController =
+      TextEditingController(
+          text:
+              preData?["loanApplication"]?["loan_int_rate"]?.toString() ?? '');
 
   @override
   Widget build(BuildContext context) {
@@ -145,15 +178,28 @@ class Page1 extends StatelessWidget {
 }
 
 class Page2 extends StatelessWidget {
+  Map<String, dynamic>? preData;
   final Function(int, int, double, int, String, String) next;
+
   final VoidCallback back;
-  Page2({super.key, required this.next, required this.back});
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController annualIncomeController = TextEditingController();
-  final TextEditingController employmentLengthController =
-      TextEditingController();
-  final TextEditingController creditHistoryLengthController =
-      TextEditingController();
+  Page2(
+      {super.key,
+      required this.next,
+      required this.back,
+      required this.preData});
+  //text: preData?["loanApplication"]?["loan_int_rate"]?.toString() ?? ''
+  late final TextEditingController ageController = TextEditingController(
+      text: preData?["loanApplication"]?["age"]?.toString() ?? '');
+  late final TextEditingController annualIncomeController =
+      TextEditingController(text: preData?["monthlyIncome"]?.toString() ?? '');
+  late final TextEditingController employmentLengthController =
+      TextEditingController(
+          text:
+              preData?["loanApplication"]?["employment_len"]?.toString() ?? '');
+  late final TextEditingController creditHistoryLengthController =
+      TextEditingController(
+          text:
+              preData?["loanApplication"]?["cred_hist_len"]?.toString() ?? '');
   final List<String> homeOwnershipOptions = [
     "Rent",
     "Own",
@@ -168,8 +214,25 @@ class Page2 extends StatelessWidget {
     "Home Improvement",
     "Debt Consolation"
   ];
-  String selectedHomeOwnership = "Rent";
-  String selectedLoanIntent = "Personal";
+  final Map<String, String> configu = {
+    "RENT": "Rent",
+    "OWN": "Own",
+    "MORTGAGE": "Mortgage",
+    "OTHER": "Other",
+    "PERSONAL": "Personal",
+    "EDUCATION": "Education",
+    "MEDICAL": "Medical",
+    "VENTURE": "Venture",
+    "HOMEIMPROVEMENT": "Home Improvement",
+    "DEBTCONSOLATION": "Debt Consolation"
+  };
+  late String selectedHomeOwnership = configu[
+          (preData?["loanApplication"]?["ownership"]?.toString() ?? "RENT")] ??
+      "Rent";
+  late String selectedLoanIntent = configu[
+          (preData?["loanApplication"]?["loan_intent"]?.toString() ??
+              "PERSONAL")] ??
+      "Personal";
 
   @override
   Widget build(BuildContext context) {
@@ -326,10 +389,23 @@ class _Page3State extends State<Page3> {
           widget.personalDetails['annualIncome'],
       'cred_hist_len': widget.personalDetails['creditHistoryLength'],
     };
+    print("FINAL CONFIG");
+    print(jsonEncode(finalObject));
     getData();
   }
 
   Future<void> getData() async {
+    await fetch(
+      "https://servolend-server.onrender.com/api/user/loan-application",
+      finalObject,
+      "PUT",
+    );
+    await Future.delayed(const Duration(seconds: 1));
+    // print("UPDATE REQ SENT");
+    // if (f.isNotEmpty) {
+    //   print("UPDATE RES RECIEVED");
+    //   print(jsonEncode(f));
+    // }
     final Map<String, dynamic> res = await fetch(
       'https://deploy-api-17es.onrender.com/predict',
       finalObject,
