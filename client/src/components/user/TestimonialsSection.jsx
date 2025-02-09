@@ -242,21 +242,7 @@ const TestimonialsSection = () => {
           className="mt-24"
         >
           <p className="text-center text-gray-600 mb-8">Trusted by leading financial institutions</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
-            {[1, 2, 3, 4].map((index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                className="grayscale hover:grayscale-0 transition-all"
-              >
-                <img
-                  src={`/api/placeholder/160/80`}
-                  alt={`Partner ${index}`}
-                  className="max-h-12 w-auto"
-                />
-              </motion.div>
-            ))}
-          </div>
+          
         </motion.div>
       </div>
     </section>
