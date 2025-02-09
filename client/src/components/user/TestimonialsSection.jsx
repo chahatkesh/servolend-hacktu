@@ -9,9 +9,9 @@ const testimonials = [
     author: "Sarah Johnson",
     position: "Head of Digital Lending",
     company: "FirstTech Bank",
-    image: "/api/placeholder/64/64",
+    image: "https://fairbanks.indianapolis.iu.edu/images/about/directory/faculty/johnson-sarah_3.jpg",
     rating: 5,
-    companyLogo: "/api/placeholder/120/40",
+    companyLogo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVNC30eqQO6S-gII_ILdwml_zIGVUE95urYg&s",
     stats: {
       processTime: "60%",
       satisfaction: "95%"
@@ -23,9 +23,9 @@ const testimonials = [
     author: "Michael Chen",
     position: "CTO",
     company: "Future Finance",
-    image: "/api/placeholder/64/64",
+    image: "https://ysm-res.cloudinary.com/image/upload/c_limit,f_auto,h_2400,q_auto,w_1600/v1/yms/prod/332e5c7d-9008-4f8e-bf5d-65898c39b60f",
     rating: 5,
-    companyLogo: "/api/placeholder/120/40",
+    companyLogo: "https://pre-logo.com/data/img/fu-fi-6.jpg",
     stats: {
       accuracy: "99%",
       speed: "5x"
@@ -37,9 +37,9 @@ const testimonials = [
     author: "Priya Patel",
     position: "Operations Director",
     company: "Global Credit",
-    image: "/api/placeholder/64/64",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMank7Jlzm4eF-QZicuzkfplNDmkIRDX8bDQ&s",
     rating: 5,
-    companyLogo: "/api/placeholder/120/40",
+    companyLogo: "https://seekvectorlogo.com/wp-content/uploads/2023/04/global-credit-union-vector-logo.png",
     stats: {
       efficiency: "85%",
       savings: "40%"
