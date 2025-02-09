@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, Bot } from 'lucide-react';
+import { AlertCircle, Bot, AlertTriangle, TrendingUp } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { api } from '../../services/api';
 import Loader from '../../components/layout/Loader';
@@ -9,11 +9,54 @@ const UserAnalysis = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [parsedSections, setParsedSections] = useState([]);
+
+  const parseAnalysisMessage = (message) => {
+    const sections = [];
+    const lines = message.split('\n\n');
+    
+    lines.forEach((line, index) => {
+      if (line.includes('*Key Rejection Factors & Recommendations:')) {
+        return;
+      }
+      
+      if (line.startsWith('*')) {
+        return;
+      }
+
+      if (line.match(/^\d+\./)) {
+        const [title, ...descriptionParts] = line.split(':');
+        let description = descriptionParts.join(':').trim();
+        
+        // Clean up markdown formatting in description
+        description = description.replace(/\*\*/g, '');
+        description = description.replace(/\*/g, '');
+        
+        const number = title.split('.')[0].trim();
+        const titleText = title.split('.')[1].trim().replace(/^\*\*/, '').replace(/\*$/, '');
+        
+        sections.push({
+          id: number,
+          title: titleText,
+          description: description,
+          type: description.toLowerCase().includes('warning') ? 'warning' : 'info'
+        });
+      } else if (line.startsWith('⚠')) {
+        sections.push({
+          id: 'summary',
+          title: 'Summary',
+          description: line.replace('⚠', '').trim(),
+          type: 'warning'
+        });
+      }
+    });
+
+    return sections;
+  };
 
   useEffect(() => {
     const fetchAnalysis = async () => {
       try {
-        // Get user's loan application data
         const response = await api.get('/user/profile');
         const userData = response;
 
@@ -23,7 +66,6 @@ const UserAnalysis = () => {
           return;
         }
 
-        // Prepare the analysis request payload
         const analysisPayload = {
           name: userData.name,
           age: userData.loanApplication.age,
@@ -38,7 +80,6 @@ const UserAnalysis = () => {
           creditScore: userData.creditScore,
         };
 
-        // Make the analysis API call
         const analysisResponse = await fetch('https://servolend-analysis.onrender.com/analyse', {
           method: 'POST',
           headers: {
@@ -53,6 +94,11 @@ const UserAnalysis = () => {
 
         const analysisData = await analysisResponse.json();
         setAnalysis(analysisData);
+        
+        if (analysisData.message) {
+          const sections = parseAnalysisMessage(analysisData.message);
+          setParsedSections(sections);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -62,6 +108,28 @@ const UserAnalysis = () => {
 
     fetchAnalysis();
   }, []);
+
+  const getCardStyle = (type) => {
+    switch (type) {
+      case 'warning':
+        return 'border-l-4 border-yellow-500';
+      case 'info':
+        return 'border-l-4 border-blue-500';
+      default:
+        return '';
+    }
+  };
+
+  const getIcon = (type) => {
+    switch (type) {
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      case 'info':
+        return <TrendingUp className="w-5 h-5 text-blue-500" />;
+      default:
+        return null;
+    }
+  };
 
   if (loading) {
     return <Loader />;
@@ -83,15 +151,36 @@ const UserAnalysis = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      className="max-w-3xl mx-auto px-4 sm:px-6 py-6"
+    >
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-2xl font-semibold mb-6">Loan Application Analysis</h2>
 
-        {analysis && (
-          <div className="prose prose-blue max-w-none">
-            <ReactMarkdown>{analysis.message}</ReactMarkdown>
-          </div>
-        )}
+        <div className="space-y-4">
+          {parsedSections.map((section) => (
+            <motion.div
+              key={section.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`bg-white rounded-lg shadow-sm p-4 ${getCardStyle(section.type)}`}
+            >
+              <div className="flex gap-3">
+                <div className="mt-1">
+                  {getIcon(section.type)}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                  <div className="mt-1 text-gray-600">
+                    {section.description}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
         <motion.div
           className="mt-6 pt-6 border-t"
