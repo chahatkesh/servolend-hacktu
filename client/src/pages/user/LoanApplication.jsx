@@ -57,6 +57,10 @@ const LoanEligibilityForm = () => {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const MAX_LOAN_AMOUNT = Number.MAX_SAFE_INTEGER;
+  const MIN_AGE = 18;
 
   const [formData, setFormData] = useState({
     age: '',
@@ -109,12 +113,34 @@ const LoanEligibilityForm = () => {
     return (loanAmount / income).toFixed(2);
   };
 
+  const validateForm = () => {
+    const errors = {};
+
+    if (formData.loan_amnt && Number(formData.loan_amnt) > MAX_LOAN_AMOUNT) {
+      errors.loan_amnt = 'Loan amount exceeds maximum limit';
+    }
+
+    if (formData.age && Number(formData.age) < MIN_AGE) {
+      errors.age = 'Must be at least 18 years old';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
   const saveLoanApplication = async (data) => {
@@ -139,6 +165,10 @@ const LoanEligibilityForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -188,10 +218,15 @@ const LoanEligibilityForm = () => {
               name="loan_amnt"
               value={formData.loan_amnt}
               onChange={handleInputChange}
-              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className={`pl-10 w-full p-3 border ${
+                validationErrors.loan_amnt ? 'border-red-500' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-blue-500`}
               placeholder="Enter loan amount"
             />
           </div>
+          {validationErrors.loan_amnt && (
+            <p className="text-sm text-red-500 mt-1">{validationErrors.loan_amnt}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -225,10 +260,15 @@ const LoanEligibilityForm = () => {
               name="age"
               value={formData.age}
               onChange={handleInputChange}
-              className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className={`pl-10 w-full p-3 border ${
+                validationErrors.age ? 'border-red-500' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-blue-500`}
               placeholder="Enter your age"
             />
           </div>
+          {validationErrors.age && (
+            <p className="text-sm text-red-500 mt-1">{validationErrors.age}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -390,6 +430,10 @@ const LoanEligibilityForm = () => {
   // Handle step changes with auto-save
   const handleStepChange = async (newStep) => {
     if (step < newStep) {
+      // Validate before proceeding to next step
+      if (!validateForm()) {
+        return;
+      }
       await saveLoanApplication({
         ...formData,
         status: 'draft',
