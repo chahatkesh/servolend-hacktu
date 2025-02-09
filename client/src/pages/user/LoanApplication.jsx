@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   ChevronRight,
   ChevronLeft,
-  DollarSign,
+  IndianRupee,
   Briefcase,
   Home,
   Clock,
@@ -212,7 +212,7 @@ const LoanEligibilityForm = () => {
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Loan Amount</label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <IndianRupee className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
             <input
               type="number"
               name="loan_amnt"
@@ -274,7 +274,7 @@ const LoanEligibilityForm = () => {
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">Annual Income</label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <IndianRupee className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
             <input
               type="number"
               name="income"

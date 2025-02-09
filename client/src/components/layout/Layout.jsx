@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
-import {
-  Menu,
-  X,
-  Home,
-  FileText,
-  Settings,
-  User,
-  Activity,
-  Bell,
-  Calculator,
-  LogOut,
-} from 'lucide-react';
+import { Menu, X, Home, FileText, Settings, User, Bell, Calculator, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Layout = () => {
@@ -224,6 +213,7 @@ const Layout = () => {
                 {/* User Section */}
                 {isMobile ? (
                   <motion.div
+                    onClick={() => navigate('/user')}
                     whileHover={{ scale: 1.02 }}
                     className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white font-medium shadow-lg"
                   >
@@ -231,6 +221,7 @@ const Layout = () => {
                   </motion.div>
                 ) : (
                   <motion.div
+                    onClick={() => navigate('/user')}
                     whileHover={{ scale: 1.02 }}
                     className="flex items-center space-x-3 bg-gray-50 px-3 py-2 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
                   >

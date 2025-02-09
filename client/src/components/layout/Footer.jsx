@@ -1,14 +1,14 @@
 import React from 'react';
-import { Link } from "react-router-dom";
-import { 
-  Shield, 
-  Phone, 
-  Mail, 
+import { Link } from 'react-router-dom';
+import {
+  Landmark,
+  Phone,
+  Mail,
   MapPin,
   Facebook,
   Twitter,
   Linkedin,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 
 const Footer = () => {
@@ -19,11 +19,12 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1">
             <div className="flex items-center space-x-3 mb-4">
-              <Shield className="h-8 w-8 text-blue-600" />
+              <Landmark className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">ServoLend AI</span>
             </div>
             <p className="text-gray-600 mb-4">
-              Transforming loan origination with intelligent automation and seamless customer experience.
+              Transforming loan origination with intelligent automation and seamless customer
+              experience.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
@@ -48,12 +49,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-600 hover:text-blue-600 transition-colors">
+                <Link
+                  to="/services"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
                   Our Services
                 </Link>
               </li>
               <li>
-                <Link to="/calculator" className="text-gray-600 hover:text-blue-600 transition-colors">
+                <Link
+                  to="/calculator"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
                   Loan Calculator
                 </Link>
               </li>
@@ -80,12 +87,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/security" className="text-gray-600 hover:text-blue-600 transition-colors">
+                <Link
+                  to="/security"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
                   Security
                 </Link>
               </li>
               <li>
-                <Link to="/compliance" className="text-gray-600 hover:text-blue-600 transition-colors">
+                <Link
+                  to="/compliance"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
                   Compliance
                 </Link>
               </li>
@@ -119,10 +132,16 @@ const Footer = () => {
               © {new Date().getFullYear()} ServoLend AI. All rights reserved.
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <Link to="/sitemap" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+              <Link
+                to="/sitemap"
+                className="text-gray-600 hover:text-blue-600 text-sm transition-colors"
+              >
                 Sitemap
               </Link>
-              <a href="#" className="text-gray-600 hover:text-blue-600 text-sm transition-colors flex items-center space-x-1">
+              <a
+                href="#"
+                className="text-gray-600 hover:text-blue-600 text-sm transition-colors flex items-center space-x-1"
+              >
                 <span>Developer API</span>
                 <ExternalLink className="h-4 w-4" />
               </a>
