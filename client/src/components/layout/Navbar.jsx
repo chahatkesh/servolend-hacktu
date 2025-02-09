@@ -129,14 +129,15 @@ const Navbar = () => {
                 {/* User Actions */}
                 <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-200">
                   {/* Notifications */}
-                  <button
-                    className="relative p-2 cursor-pointer rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label="Notifications"
-                  >
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
-                  </button>
-
+                  <Link to={'/user/notification'}>
+                    <button
+                      className="relative p-2 cursor-pointer rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label="Notifications"
+                    >
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
+                    </button>
+                  </Link>
                   {/* Profile Dropdown */}
                   <div className="relative" data-dropdown>
                     <button
