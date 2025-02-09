@@ -219,9 +219,6 @@ const Layout = () => {
                     />
                     <Bell size={22} className="text-gray-600" />
                   </motion.button>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    3
-                  </span>
                 </div>
 
                 {/* User Section */}
