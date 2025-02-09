@@ -34,8 +34,13 @@ Future<dynamic> fetch(
       headers: headers,
       body: jsonEncode(jsonData),
     );
+  } else if (method.toUpperCase() == 'PUT') {
+    response = await client.put(
+      uri,
+      headers: headers,
+      body: jsonEncode(jsonData),
+    );
   } else {
-    print("USING GET METHOD");
     final queryString = _encodeQueryParameters(jsonData);
     final uriWithQuery = Uri.parse('$url?$queryString');
     response = await client.get(

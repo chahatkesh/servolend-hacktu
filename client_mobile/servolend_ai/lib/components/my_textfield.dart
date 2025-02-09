@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class MyTextfield extends StatelessWidget {
   final String hintText;
+  final bool enabled;
   final Icon? prefixIcon;
   final Icon? suffixIcon; // New field for optional icon
   final bool obscureText;
@@ -11,18 +12,20 @@ class MyTextfield extends StatelessWidget {
 
   const MyTextfield({
     super.key,
+    this.enabled = true,
     required this.hintText,
     this.prefixIcon,
     this.suffixIcon, // Initialize the new field
     this.obscureText = false,
     required this.controller,
-    required this.inputType,
+    this.inputType = TextInputType.text,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: enabled,
       controller: controller,
       obscureText: obscureText,
       keyboardType: inputType,
