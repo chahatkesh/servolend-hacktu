@@ -1,6 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Shield, Clock, LineChart, Zap, Users, Database, Lock } from 'lucide-react';
+import { 
+  Rocket, Shield, Clock, LineChart, Zap, Users, Database, Lock,
+  CheckCircle
+} from 'lucide-react';
 
 const features = [
   {
@@ -55,12 +58,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <motion.section
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true }}
-      className="py-24 bg-gray-50 relative overflow-hidden"
-    >
+    <section className="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-40">
         <div className="absolute inset-0" style={{
@@ -74,19 +72,20 @@ const FeaturesSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
           <motion.div 
-            className="inline-block px-4 py-2 bg-blue-100 rounded-full mb-4"
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
+            className="inline-flex items-center px-4 py-2 bg-blue-100 rounded-full mb-4"
           >
+            <CheckCircle className="h-4 w-4 text-blue-600 mr-2" />
             <span className="text-blue-600 font-medium">Powerful Features</span>
           </motion.div>
           
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Everything You Need to
             <span className="relative ml-2">
               <span className="relative z-10">Succeed</span>
@@ -113,26 +112,49 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ 
-                scale: 1.02,
-                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.1)'
-              }}
-              className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 transition-all"
+              whileHover={{ scale: 1.02, translateY: -5 }}
+              className="group bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
             >
-              <div className={`w-12 h-12 ${feature.color}/10 rounded-xl flex items-center justify-center mb-4`}>
-                <feature.icon className={`h-6 w-6 ${feature.color.replace('bg-', 'text-')}`} />
+              <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                <feature.icon className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-gray-600">
+              
+              <p className="text-gray-600 group-hover:text-gray-700 transition-colors">
                 {feature.description}
               </p>
             </motion.div>
           ))}
         </div>
+
+        {/* Additional Feature Highlights */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8"
+        >
+          {[
+            { title: '99.9%', subtitle: 'System Uptime', description: 'Reliable platform you can count on' },
+            { title: '256-bit', subtitle: 'Encryption', description: 'Bank-grade security for your data' },
+            { title: '24/7', subtitle: 'Support', description: 'Round-the-clock expert assistance' }
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.02 }}
+              className="text-center p-8 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors duration-300"
+            >
+              <h4 className="text-3xl font-bold text-blue-600 mb-1">{stat.title}</h4>
+              <p className="text-gray-900 font-medium mb-2">{stat.subtitle}</p>
+              <p className="text-gray-600">{stat.description}</p>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 
