@@ -186,7 +186,7 @@ flutter run
 - **Mobile Development**
   - [Jagjit Singh](https://github.com/jagjit0306)
 - **Presentation**
-  - [Saksham Gupta](https://github.com/saksham240)
+  - [Saksham Gupta](https://github.com/saksham640)
 
 ## 📬 Contact & Support
 
