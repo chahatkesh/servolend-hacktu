@@ -42,7 +42,8 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://localhost:3000',
   'https://servolend-ai.onrender.com',
-  'https://servolend-server.onrender.com'
+  'https://servolend-server.onrender.com',
+  'https://servolend-ai.vercel.app'
 ];
 
 const corsOptions = {
