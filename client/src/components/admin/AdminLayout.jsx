@@ -2,7 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { Menu, X, Home, ClipboardCheck, Users, Shield, LogOut, CreditCard } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Home,
+  ClipboardCheck,
+  Users,
+  SearchCheck,
+  LogOut,
+  CreditCard,
+} from 'lucide-react';
 
 const AdminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -31,8 +40,8 @@ const AdminLayout = () => {
       path: '/admin/applications',
     },
     {
-      icon: Shield,
-      label: 'Risk Assessment',
+      icon: SearchCheck,
+      label: 'Loan Assessment',
       path: '/admin/assessment',
     },
     {

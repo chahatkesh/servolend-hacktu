@@ -1,200 +1,262 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { 
-  FileText, CheckCircle, AlertTriangle, DollarSign, 
-  TrendingUp, Check, X, AlertCircle, CreditCard,
-  Briefcase, Building, Scale, ChevronRight
-} from 'lucide-react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, RadarChart, Radar,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis
+  ResponsiveContainer,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
 } from 'recharts';
+import {
+  Calculator,
+  BriefcaseBusiness,
+  Building2,
+  Wallet,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Scale,
+  TrendingUp,
+  FileStack,
+  Clock,
+  User,
+} from 'lucide-react';
+import { api } from '../../services/api';
 
-const mockAssessmentData = {
-  applicant: {
-    id: 'APP001',
-    name: 'John Smith',
-    creditScore: 750,
-    monthlyIncome: 85000,
-    employmentType: 'Salaried',
-    employmentDuration: '5 years',
-    existingEMIs: 15000
-  },
-  loanRequest: {
-    amount: 500000,
-    tenure: 36,
-    purpose: 'Home Renovation',
-    proposedEMI: 16500,
-    interestRate: 10.5
-  },
-  creditHistory: {
-    activeLoans: 1,
-    pastDefaults: 0,
-    creditUtilization: 35,
-    paymentHistory: [
-      { month: 'Jan', score: 98 },
-      { month: 'Feb', score: 97 },
-      { month: 'Mar', score: 99 },
-      { month: 'Apr', score: 98 },
-      { month: 'May', score: 100 }
-    ]
-  },
-  riskMetrics: {
-    debtServiceRatio: 0.45,
-    loanToIncomeRatio: 0.65,
-    creditUtilization: 0.35,
-    employmentStability: 0.85,
-    paymentBehavior: 0.95
-  },
-  assessmentFactors: [
-    { factor: 'Credit Score', score: 85 },
-    { factor: 'Income Stability', score: 90 },
-    { factor: 'Debt Burden', score: 75 },
-    { factor: 'Payment History', score: 95 },
-    { factor: 'Employment', score: 88 }
-  ]
-};
-
-const LoanAssesment = () => {
+const LoanAssessment = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showRiskDetails, setShowRiskDetails] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await api.get('/user/profile');
+        const users = response;
+        const user = users;
+        setUserData(user);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id]);
+
+  const calculateEligibilityMetrics = (application) => {
+    if (!application) return null;
+
+    const { income, loan_amnt, loan_percent_income, employment_len, cred_hist_len } = application;
+
+    return {
+      incomeStability: Math.min((employment_len / 10) * 100, 100),
+      debtServiceRatio: Math.min((loan_amnt / income) * 100, 100),
+      creditHistory: Math.min((cred_hist_len / 5) * 100, 100),
+      affordabilityScore: Math.max(100 - loan_percent_income, 0),
+      overallRisk: application.eligibilityScore || 0,
+    };
   };
 
-  const calculateOverallRisk = () => {
-    const average = mockAssessmentData.assessmentFactors.reduce(
-      (acc, curr) => acc + curr.score, 0
-    ) / mockAssessmentData.assessmentFactors.length;
-    
-    if (average >= 80) return { level: 'Low', color: 'text-green-600' };
-    if (average >= 60) return { level: 'Medium', color: 'text-yellow-600' };
-    return { level: 'High', color: 'text-red-600' };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900">User Not Found</h2>
+          <p className="text-gray-500 mt-2">The requested loan application could not be found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const metrics = calculateEligibilityMetrics(userData.loanApplication);
+
+  const getStatusColor = (score) => {
+    if (score >= 70) return 'text-green-500';
+    if (score >= 40) return 'text-yellow-500';
+    return 'text-red-500';
   };
 
-  const risk = calculateOverallRisk();
+  const getStatusBg = (score) => {
+    if (score >= 70) return 'bg-green-50';
+    if (score >= 40) return 'bg-yellow-50';
+    return 'bg-red-50';
+  };
+
+  const getStatusIcon = (score) => {
+    if (score >= 70) return <CheckCircle className="h-6 w-6 text-green-500" />;
+    if (score >= 40) return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
+    return <XCircle className="h-6 w-6 text-red-500" />;
+  };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Loan Assessment
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Application #{mockAssessmentData.applicant.id}
-            </p>
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              {userData.picture ? (
+                <img
+                  src={userData.picture}
+                  alt={userData.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                  <User className="h-8 w-8 text-blue-600" />
+                </div>
+              )}
+              {userData.kycStatus === 'verified' && (
+                <div className="absolute -bottom-1 -right-1">
+                  <div className="bg-green-100 p-1 rounded-full">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{userData.name}</h1>
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="text-gray-500">{userData.email}</span>
+                <span className="text-gray-300">•</span>
+                <span className="text-gray-500">
+                  Applied {new Date(userData.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex space-x-3">
+            <span
+              className={`px-4 py-2 rounded-lg text-sm font-medium ${getStatusBg(
+                metrics?.overallRisk
+              )} ${getStatusColor(metrics?.overallRisk)}`}
+            >
+              Risk Score: {metrics?.overallRisk}
+            </span>
             <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-              Approve Loan
+              Approve
             </button>
             <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-              Reject Application
+              Reject
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Applicant Overview */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              Applicant Overview
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Applicant Details */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Applicant Details</h2>
+            <div className="grid grid-cols-2 gap-6">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <BriefcaseBusiness className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Occupation</p>
+                  <p className="font-medium">{userData.occupation || 'Not specified'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Employer</p>
+                  <p className="font-medium">{userData.employerName || 'Not specified'}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Wallet className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Monthly Income</p>
-                  <p className="font-medium">₹{mockAssessmentData.applicant.monthlyIncome.toLocaleString()}</p>
+                  <p className="font-medium">
+                    ₹{parseInt(userData.monthlyIncome || 0).toLocaleString()}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <CreditCard className="h-6 w-6 text-blue-600" />
+                <div className="p-2 bg-blue-50 rounded-lg">
+                  <Calculator className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Credit Score</p>
-                  <p className="font-medium">{mockAssessmentData.applicant.creditScore}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Briefcase className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Employment Type</p>
-                  <p className="font-medium">{mockAssessmentData.applicant.employmentType}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Building className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Employment Duration</p>
-                  <p className="font-medium">{mockAssessmentData.applicant.employmentDuration}</p>
+                  <p className="font-medium">{userData.creditScore || 'Not available'}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Risk Assessment */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Risk Assessment
-              </h2>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                risk.level === 'Low' ? 'bg-green-100 text-green-600' :
-                risk.level === 'Medium' ? 'bg-yellow-100 text-yellow-600' :
-                'bg-red-100 text-red-600'
-              }`}>
-                {risk.level} Risk
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Risk Metrics */}
-              <div>
-                <h3 className="font-medium text-gray-900 mb-4">Key Risk Indicators</h3>
-                <div className="space-y-4">
-                  {Object.entries(mockAssessmentData.riskMetrics).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">
-                        {key.split(/(?=[A-Z])/).join(' ')}
-                      </span>
-                      <span className={`font-medium ${value >= 0.8 ? 'text-green-600' : value >= 0.6 ? 'text-yellow-600' : 'text-red-600'}`}>
-                        {(value * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  ))}
+          {/* Loan Details */}
+          {userData.loanApplication && (
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Loan Details</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-500">Loan Amount</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    ₹{userData.loanApplication.loan_amnt?.toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-500">Interest Rate</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    {userData.loanApplication.loan_int_rate}%
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-500">Loan Purpose</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    {userData.loanApplication.loan_intent?.replace('_', ' ')}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm text-gray-500">Income to Loan Ratio</p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    {userData.loanApplication.loan_percent_income}%
+                  </p>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Radar Chart */}
-              <div className="h-64">
+          {/* Risk Assessment */}
+          {metrics && (
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Risk Assessment</h2>
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={mockAssessmentData.assessmentFactors}>
+                  <RadarChart
+                    data={[
+                      { metric: 'Income Stability', value: metrics.incomeStability },
+                      { metric: 'Debt Service', value: metrics.debtServiceRatio },
+                      { metric: 'Credit History', value: metrics.creditHistory },
+                      { metric: 'Affordability', value: metrics.affordabilityScore },
+                    ]}
+                  >
                     <PolarGrid />
-                    <PolarAngleAxis dataKey="factor" />
+                    <PolarAngleAxis dataKey="metric" />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} />
                     <Radar
-                      name="Assessment"
-                      dataKey="score"
+                      name="Metrics"
+                      dataKey="value"
                       stroke="#2563eb"
                       fill="#2563eb"
                       fillOpacity={0.6}
@@ -203,191 +265,109 @@ const LoanAssesment = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-          </div>
-
-          {/* Credit History */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              Credit History
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500">Active Loans</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {mockAssessmentData.creditHistory.activeLoans}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500">Past Defaults</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {mockAssessmentData.creditHistory.pastDefaults}
-                </p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-500">Credit Utilization</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {mockAssessmentData.creditHistory.creditUtilization}%
-                </p>
-              </div>
-            </div>
-
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockAssessmentData.creditHistory.paymentHistory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* EMI Analysis */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              EMI Analysis
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm text-gray-500">Proposed EMI</p>
-                  <p className="text-xl font-semibold text-gray-900">
-                    ₹{mockAssessmentData.loanRequest.proposedEMI.toLocaleString()}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm text-gray-500">Existing EMIs</p>
-                  <p className="text-xl font-semibold text-gray-900">
-                    ₹{mockAssessmentData.applicant.existingEMIs.toLocaleString()}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <p className="text-sm text-gray-500">Total EMI Burden</p>
-                  <p className="text-xl font-semibold text-gray-900">
-                    ₹{(mockAssessmentData.loanRequest.proposedEMI + mockAssessmentData.applicant.existingEMIs).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-              <div className="p-6 bg-gray-50 rounded-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="font-medium text-gray-900">EMI to Income Ratio</p>
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    (mockAssessmentData.loanRequest.proposedEMI / mockAssessmentData.applicant.monthlyIncome) <= 0.5
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-yellow-100 text-yellow-600'
-                  }`}>
-                    {((mockAssessmentData.loanRequest.proposedEMI / mockAssessmentData.applicant.monthlyIncome) * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="relative pt-1">
-                  <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                    <div
-                      className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
-                      style={{ width: `${(mockAssessmentData.loanRequest.proposedEMI / mockAssessmentData.applicant.monthlyIncome) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Side Panel */}
+        {/* Right Column */}
         <div className="space-y-6">
-          {/* Decision Panel */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Loan Decision
-            </h3>
-            <div className="space-y-4">
-              <textarea
-                className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500"
-                rows={4}
-                placeholder="Add decision notes..."
-              />
-              <div className="space-y-2">
-                <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                  Approve Application
-                </button>
-                <button className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center">
-                  <X className="h-5 w-5 mr-2" />
-                  Reject Application
-                </button>
-                <button className="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center justify-center">
-                  <AlertCircle className="h-5 w-5 mr-2" />
-                  Request Additional Information
-                </button>
-              </div>
+          {/* Document Verification */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  userData.documents?.every((d) => d.status === 'VERIFIED')
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-yellow-100 text-yellow-600'
+                }`}
+              >
+                {userData.documents?.filter((d) => d.status === 'VERIFIED').length || 0} of{' '}
+                {userData.documents?.length || 0} Verified
+              </span>
             </div>
-          </div>
-
-          {/* Key Recommendations */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Key Recommendations
-            </h3>
-            <div className="space-y-3">
-              {[
-                {
-                  type: 'positive',
-                  text: 'Strong credit history with consistent payments'
-                },
-                {
-                  type: 'warning',
-                  text: 'High EMI to income ratio - consider longer tenure'
-                },
-                {
-                  type: 'positive',
-                  text: 'Stable employment with good duration'
-                }
-              ].map((rec, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg flex items-start space-x-3 ${
-                    rec.type === 'positive' ? 'bg-green-50' : 'bg-yellow-50'
-                  }`}
-                >
-                  {rec.type === 'positive' ? (
-                    <Check className="h-5 w-5 text-green-600 mt-0.5" />
-                  ) : (
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  )}
-                  <span className={rec.type === 'positive' ? 'text-green-700' : 'text-yellow-700'}>
-                    {rec.text}
-                  </span>
+            <div className="space-y-4">
+              {userData.documents?.map((doc, index) => (
+                <div key={index} className="p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <FileStack className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">{doc.name}</p>
+                        <p className="text-sm text-gray-500">
+                          Uploaded {new Date(doc.uploadDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        doc.status === 'VERIFIED'
+                          ? 'bg-green-100 text-green-600'
+                          : doc.status === 'REJECTED'
+                          ? 'bg-red-100 text-red-600'
+                          : 'bg-yellow-100 text-yellow-600'
+                      }`}
+                    >
+                      {doc.status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-3 text-left bg-gray-50 rounded-xl hover:bg-gray-100">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 text-blue-600 mr-3" />
-                  <span>Download Report</span>
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+          {/* Decision Panel */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Decision Notes</h2>
+            <textarea
+              className="w-full p-3 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500"
+              rows={4}
+              placeholder="Add your decision notes here..."
+            />
+            <div className="mt-4 space-y-3">
+              <button className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center">
+                <XCircle className="h-5 w-5 mr-2" />
+                Reject Loan
               </button>
-              <button className="w-full flex items-center justify-between p-3 text-left bg-gray-50 rounded-xl hover:bg-gray-100">
-                <div className="flex items-center">
-                  <Scale className="h-5 w-5 text-blue-600 mr-3" />
-                  <span>Adjust Risk Model</span>
+            </div>
+          </div>
+
+          {/* Credit History Analysis */}
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Credit Analysis</h2>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Credit History Length</p>
+                    <p className="font-medium">
+                      {userData.loanApplication?.cred_hist_len || 0} years
+                    </p>
+                  </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
-              </button>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Scale className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Employment Duration</p>
+                    <p className="font-medium">
+                      {userData.loanApplication?.employment_len || 0} years
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-gray-500">Member Since</p>
+                    <p className="font-medium">
+                      {new Date(userData.memberSince).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -396,4 +376,4 @@ const LoanAssesment = () => {
   );
 };
 
-export default LoanAssesment;
+export default LoanAssessment;
