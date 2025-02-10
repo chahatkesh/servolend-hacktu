@@ -37,30 +37,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 // CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:3000',
-  'https://servolend-ai.onrender.com',
-  'https://servolend-server.onrender.com',
-  'https://servolend-ai.vercel.app'
-];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+app.use(cors({
+  origin: process.env.CLIENT_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['Set-Cookie'],
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Initialize Passport
 app.use(passport.initialize());
@@ -139,7 +122,7 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Allowed origins:', allowedOrigins);
+  console.log('Allowed origins:', process.env.CLIENT_URL);
 });
 
 // Handle uncaught exceptions
